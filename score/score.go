@@ -1,5 +1,12 @@
 package score
 
+import (
+	"maps"
+	"reflect"
+	"slices"
+	"sort"
+)
+
 func Score(dice []int) (int, int) {
 	sort.Slice(dice, func(i, j int) bool { return dice[i] < dice[j] })
 	if reflect.DeepEqual(dice, []int{1, 2, 3, 4, 5, 6}) {

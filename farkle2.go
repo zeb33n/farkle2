@@ -3,11 +3,8 @@ package main
 import (
 	"fmt"
 	"math/rand"
-	"reflect"
-	"slices"
-	"sort"
 
-	score "github.com/zeb33n/score"
+	score "github.com/zeb33n/farkle2/score"
 )
 
 type Player struct {
@@ -29,7 +26,7 @@ func take_turn(gamestate GameState) {
 	}
 	println("Rolled: ")
 	fmt.Printf("%v\n", dice)
-	round_score, num_dice := score(dice)
+	round_score, num_dice := score.Score(dice)
 	println("Score: ")
 	println(round_score)
 	if round_score == 0 {
