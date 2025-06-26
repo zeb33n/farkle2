@@ -17,7 +17,7 @@ func Score(dice []int) (int, int) {
 		value_counts[dice[i]]++
 	}
 	counts := slices.Collect(maps.Values(value_counts))
-	if (len(counts) == 2 && all_equal(counts, 3)) || (len(counts) == 2 && all_equal(counts, 2)) {
+	if (len(counts) == 2 && all_equal(counts, 3)) || (len(counts) == 3 && all_equal(counts, 2)) {
 		return 1500, 0
 	}
 
@@ -49,8 +49,8 @@ func Score(dice []int) (int, int) {
 }
 
 func all_equal(s []int, value int) bool {
-	for i := range s {
-		if i != value {
+	for _, e := range s {
+		if e != value {
 			return false
 		}
 	}
