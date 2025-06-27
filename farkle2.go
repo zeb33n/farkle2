@@ -14,9 +14,26 @@ type Player struct {
 
 type GameState struct {
 	dice           []int
+	round_score    int
 	current_score  int
 	current_player int
 	players        []Player
+}
+
+func display_score(gamestate *GameState) {
+	for i := 0; i < 5; i++ {
+		fmt.Printf("\033[1A\033[2K")
+	}
+	dice_sides := []string{"[.]", "[:]", "[.:]", "[::]", "[:.:]", "[:::]"}
+	for _, e := range gamestate.dice {
+		fmt.Printf("%s ", dice_sides[e-1])
+	}
+	fmt.Printf(
+		"\nRoll: %d\nScore: %d\nPlayer: %s\n",
+		gamestate.round_score,
+		gamestate.current_score,
+		gamestate.players[gamestate.current_player].name,
+	)
 }
 
 func take_turn(gamestate *GameState) {
@@ -26,8 +43,9 @@ func take_turn(gamestate *GameState) {
 		gamestate.dice[i] = rand.Intn(6) + 1
 	}
 	round_score, num_dice := score.Score(gamestate.dice)
+	gamestate.round_score = round_score
 	gamestate.current_score += round_score
-	fmt.Printf("%v\n", gamestate)
+	display_score(gamestate)
 	gamestate.dice = make([]int, num_dice)
 	if round_score == 0 {
 		gamestate.current_score = 0
@@ -47,7 +65,8 @@ func pass_turn(gamestate *GameState) {
 }
 
 func main() {
-	gamestate := &GameState{make([]int, 6), 0, 0, []Player{{name: "bob", score: 0}}}
+	fmt.Print("\n\n\n\n")
+	gamestate := &GameState{make([]int, 6), 0, 0, 0, []Player{{name: "bob", score: 0}}}
 	for true {
 		if true {
 			take_turn(gamestate)
