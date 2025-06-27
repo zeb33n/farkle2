@@ -3,6 +3,9 @@ package main
 import (
 	"fmt"
 	"math/rand"
+	"os"
+	"os/exec"
+	"os/signal"
 
 	score "github.com/zeb33n/farkle2/score"
 )
@@ -21,7 +24,7 @@ type GameState struct {
 }
 
 func display_score(gamestate *GameState) {
-	for i := 0; i < 5; i++ {
+	for i := 0; i < 4; i++ {
 		fmt.Printf("\033[1A\033[2K")
 	}
 	dice_sides := []string{"[.]", "[:]", "[.:]", "[::]", "[:.:]", "[:::]"}
@@ -64,8 +67,26 @@ func pass_turn(gamestate *GameState) {
 	gamestate.dice = make([]int, 6)
 }
 
+func handle_sig_int() {
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+	go func() {
+		for range c {
+			exec.Command("stty", "-F", "/dev/tty", "echo").Run()
+			os.Exit(1)
+		}
+	}()
+}
+
 func main() {
-	fmt.Print("\n\n\n\n")
+	handle_sig_int()
+	// tty setup
+	fmt.Print("\n\nPress X to start.\n\n")
+	// disable input buffering
+	exec.Command("stty", "-F", "/dev/tty", "cbreak", "min", "1").Run()
+	// Do not display entered characters
+	exec.Command("stty", "-F", "/dev/tty", "-echo").Run()
+
 	gamestate := &GameState{make([]int, 6), 0, 0, 0, []Player{{name: "bob", score: 0}}}
 	for true {
 		if true {
