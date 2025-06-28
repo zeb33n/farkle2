@@ -7,7 +7,9 @@ func WaitForKeypress(verbose bool) string {
 	os.Stdin.Read(b)
 	s := string(b)
 	if verbose {
-		print(s)
+		if s != "\n" {
+			print(s)
+		}
 	}
 	return s
 }

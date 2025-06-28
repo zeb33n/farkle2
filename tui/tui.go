@@ -38,6 +38,16 @@ controls: [r] roll [b] bank
 	renderString(game_string)
 }
 
+func TuiRenderTurnChange(player string) {
+	game_string := fmt.Sprintf(`
+%s's turn! 
+controls: [r] roll [b] bank
+`,
+		player,
+	)
+	renderString(game_string)
+}
+
 func TuiRenderWelcomeLocal(splayers []string) {
 	players := ""
 	for _, e := range splayers {

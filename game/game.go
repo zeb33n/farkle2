@@ -16,6 +16,7 @@ func passTurn(gamestate *state.GameState) {
 	}
 	gamestate.CurrentScore = 0
 	gamestate.Dice = make([]int, 6)
+	tui.TuiRenderTurnChange(gamestate.Players[gamestate.CurrentPlayer].Name)
 }
 
 func takeTurn(gamestate *state.GameState) {

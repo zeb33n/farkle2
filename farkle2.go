@@ -8,7 +8,6 @@ import (
 
 func main() {
 	tui.TuiInit()
-
 	var splayers []string
 	name := ""
 	for true {
@@ -27,6 +26,7 @@ func main() {
 		splayers = append(splayers, name)
 		name = ""
 	}
+	tui.TuiRenderTurnChange(splayers[0])
 	game.RunGame(splayers, 10000)
 	tui.TuiClose()
 }
