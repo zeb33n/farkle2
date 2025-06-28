@@ -12,18 +12,29 @@ import (
 
 var lenLastRender int = 0
 
-func TuiRender(gamestate *state.GameState) {
+func TuiRenderGamestate(gamestate *state.GameState) {
 	dice_sides := []string{"[.]", "[:]", "[.:]", "[::]", "[:.:]", "[:::]"}
 	roll := ""
 	for _, e := range gamestate.Dice {
 		roll += dice_sides[e-1]
 	}
+	players := ""
+	for _, e := range gamestate.Players {
+		players += fmt.Sprintf("%s: %d\n", e.Name, e.Score)
+	}
 	game_string := fmt.Sprintf(
-		"%s\nPlayer: %s\nRollScore: %d CurrentScore: %d\n",
+		`
+%s
+Player: %s
+RollScore: %d CurrentScore: %d
+%s
+controls: [r] roll [b] bank
+`,
 		roll,
 		gamestate.Players[gamestate.CurrentPlayer].Name,
 		gamestate.RoundScore,
 		gamestate.CurrentScore,
+		players,
 	)
 	renderString(game_string)
 }
@@ -51,7 +62,7 @@ func TuiInit() {
 	handleSigInt()
 	exec.Command("clear").Run()
 	// tty setup
-	renderString("\nPress X to start.\n")
+	renderString("\nPress AnyKey to start.\n")
 	// disable input buffering
 	exec.Command("stty", "-F", "/dev/tty", "cbreak", "min", "1").Run()
 	// Do not display entered characters

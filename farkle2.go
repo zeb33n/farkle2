@@ -7,6 +7,6 @@ import (
 
 func main() {
 	tui.TuiInit()
-	game.RunGame([]string{"bob"}, 10000)
+	game.RunGame([]string{"Zeb", "Will"}, 10000)
 	tui.TuiClose()
 }
