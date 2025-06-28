@@ -36,9 +36,15 @@ func takeTurn(gamestate *state.GameState) {
 	}
 }
 
-func RunGame(players []string, finalscore int) {
-	gamestate := &state.GameState{make([]int, 6), 0, 0, 0, []state.Player{{Name: "zeb", Score: 0}, {Name: "will", Score: 0}}}
+func RunGame(splayers []string, finalscore int) {
+	players := make([]state.Player, len(splayers))
+	for i, e := range splayers {
+		players[i] = state.Player{Name: e, Score: 0}
+	}
+	gamestate := &state.GameState{make([]int, 6), 0, 0, 0, players}
 	for true {
+		// TODO make more generic (waitForInput)
+		// Injectable reader. easy to swap out whether reading from bot, stdin, or socket
 		x := utils.WaitForKeypress()
 		if x == "r" {
 			takeTurn(gamestate)
