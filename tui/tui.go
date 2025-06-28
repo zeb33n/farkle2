@@ -22,8 +22,7 @@ func TuiRenderGamestate(gamestate *state.GameState) {
 	for _, e := range gamestate.Players {
 		players += fmt.Sprintf("%s: %d\n", e.Name, e.Score)
 	}
-	game_string := fmt.Sprintf(
-		`
+	game_string := fmt.Sprintf(`
 %s
 Player: %s
 RollScore: %d CurrentScore: %d
@@ -37,6 +36,22 @@ controls: [r] roll [b] bank
 		players,
 	)
 	renderString(game_string)
+}
+
+func TuiRenderWelcomeLocal(splayers []string) {
+	players := ""
+	for _, e := range splayers {
+		players += fmt.Sprintf("%s\n", e)
+	}
+	welcome_string := fmt.Sprintf(`
+%s
+Press [.] to start
+EnterName: 
+`,
+		players,
+	)
+	renderString(welcome_string)
+	// exec.Command("stty", "-F", "/dev/tty", "echo").Run()
 }
 
 func renderString(s string) {
@@ -60,9 +75,6 @@ func handleSigInt() {
 
 func TuiInit() {
 	handleSigInt()
-	exec.Command("clear").Run()
-	// tty setup
-	renderString("\nPress AnyKey to start.\n")
 	// disable input buffering
 	exec.Command("stty", "-F", "/dev/tty", "cbreak", "min", "1").Run()
 	// Do not display entered characters

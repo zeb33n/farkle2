@@ -45,7 +45,7 @@ func RunGame(splayers []string, finalscore int) {
 	for true {
 		// TODO make more generic (waitForInput)
 		// Injectable reader. easy to swap out whether reading from bot, stdin, or socket
-		x := utils.WaitForKeypress()
+		x := utils.WaitForKeypress(false)
 		if x == "r" {
 			takeTurn(gamestate)
 		} else {
