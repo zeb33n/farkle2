@@ -1,3 +1,4 @@
+// Package state
 package state
 
 type Player struct {

@@ -1,3 +1,4 @@
+// Package tui
 package tui
 
 import (
@@ -5,10 +6,10 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
+	"slices"
 	"strings"
 
 	"github.com/zeb33n/farkle2/state"
-	"github.com/zeb33n/farkle2/utils"
 )
 
 var lenLastRender int = 0
@@ -27,7 +28,7 @@ const (
 	WHITE
 )
 
-var colours = map[colourKind]string{
+var COLOURS = map[colourKind]string{
 	RESET:   "\033[0m",
 	RED:     "\033[31m",
 	GREEN:   "\033[32m",
@@ -40,24 +41,24 @@ var colours = map[colourKind]string{
 }
 
 func setStringColour(s string, colour colourKind) string {
-	return colours[colour] + s + colours[RESET]
+	return COLOURS[colour] + s + COLOURS[RESET]
 }
 
 func TuiRenderGamestate(gamestate *state.GameState) {
-	dice_sides := []string{"[.]", "[:]", "[.:]", "[::]", "[:.:]", "[:::]"}
+	diceSides := []string{"[.]", "[:]", "[.:]", "[::]", "[:.:]", "[:::]"}
 	roll := ""
 	for i, e := range gamestate.Dice {
-		if utils.Contains(gamestate.ScoringDice, i) {
-			roll += setStringColour(dice_sides[e-1], RED)
+		if slices.Contains(gamestate.ScoringDice, i) {
+			roll += setStringColour(diceSides[e-1], RED)
 		} else {
-			roll += dice_sides[e-1]
+			roll += diceSides[e-1]
 		}
 	}
 	players := ""
 	for _, e := range gamestate.Players {
 		players += fmt.Sprintf("%s: %d\n", e.Name, e.Score)
 	}
-	game_string := fmt.Sprintf(`
+	gameString := fmt.Sprintf(`
 %s
 Player: %s
 RollScore: %d CurrentScore: %d
@@ -70,17 +71,17 @@ controls: [r] roll [b] bank
 		gamestate.CurrentScore,
 		players,
 	)
-	renderString(game_string)
+	renderString(gameString)
 }
 
 func TuiRenderTurnChange(player string) {
-	game_string := fmt.Sprintf(`
+	gameString := fmt.Sprintf(`
 %s's turn! 
 controls: [r] roll [b] bank
 `,
 		player,
 	)
-	renderString(game_string)
+	renderString(gameString)
 }
 
 func TuiRenderWelcomeLocal(splayers []string) {
@@ -88,14 +89,14 @@ func TuiRenderWelcomeLocal(splayers []string) {
 	for _, e := range splayers {
 		players += fmt.Sprintf("%s\n", e)
 	}
-	welcome_string := fmt.Sprintf(`
+	welcomeString := fmt.Sprintf(`
 %s
 Press [.] to start
 EnterName: 
 `,
 		players,
 	)
-	renderString(welcome_string)
+	renderString(welcomeString)
 	// exec.Command("stty", "-F", "/dev/tty", "echo").Run()
 }
 
