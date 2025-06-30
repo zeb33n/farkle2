@@ -23,7 +23,8 @@ func takeTurn(gamestate *state.GameState) {
 	for i := range gamestate.Dice {
 		gamestate.Dice[i] = rand.Intn(6) + 1
 	}
-	round_score, num_dice := score.Score(gamestate.Dice)
+	round_score, num_dice, positions := score.Score(gamestate.Dice)
+	gamestate.ScoringDice = positions
 	gamestate.RoundScore = round_score
 	gamestate.CurrentScore += round_score
 	tui.TuiRenderGamestate(gamestate)
@@ -37,13 +38,22 @@ func takeTurn(gamestate *state.GameState) {
 	}
 }
 
+func check_for_winner(players []state.Player, finalscore int) bool {
+	for _, player := range players {
+		if player.Score >= finalscore {
+			return false
+		}
+	}
+	return true
+}
+
 func RunGame(splayers []string, finalscore int) {
 	players := make([]state.Player, len(splayers))
 	for i, e := range splayers {
 		players[i] = state.Player{Name: e, Score: 0}
 	}
-	gamestate := &state.GameState{make([]int, 6), 0, 0, 0, players}
-	for true {
+	gamestate := &state.GameState{make([]int, 6), []int{}, 0, 0, 0, players}
+	for check_for_winner(gamestate.Players, finalscore) {
 		// TODO make more generic (waitForInput)
 		// Injectable reader. easy to swap out whether reading from bot, stdin, or socket
 		x := utils.WaitForKeypress(false)
@@ -55,4 +65,5 @@ func RunGame(splayers []string, finalscore int) {
 			takeTurn(gamestate)
 		}
 	}
+	println("WINNER!")
 }

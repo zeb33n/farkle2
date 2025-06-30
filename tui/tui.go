@@ -8,15 +8,50 @@ import (
 	"strings"
 
 	"github.com/zeb33n/farkle2/state"
+	"github.com/zeb33n/farkle2/utils"
 )
 
 var lenLastRender int = 0
 
+type colourKind int
+
+const (
+	RESET colourKind = iota
+	RED
+	GREEN
+	YELLOW
+	BLUE
+	MAGENTA
+	CYAN
+	GRAY
+	WHITE
+)
+
+var colours = map[colourKind]string{
+	RESET:   "\033[0m",
+	RED:     "\033[31m",
+	GREEN:   "\033[32m",
+	YELLOW:  "\033[33m",
+	BLUE:    "\033[34m",
+	MAGENTA: "\033[35m",
+	CYAN:    "\033[36m",
+	GRAY:    "\033[37m",
+	WHITE:   "\033[97m",
+}
+
+func setStringColour(s string, colour colourKind) string {
+	return colours[colour] + s + colours[RESET]
+}
+
 func TuiRenderGamestate(gamestate *state.GameState) {
 	dice_sides := []string{"[.]", "[:]", "[.:]", "[::]", "[:.:]", "[:::]"}
 	roll := ""
-	for _, e := range gamestate.Dice {
-		roll += dice_sides[e-1]
+	for i, e := range gamestate.Dice {
+		if utils.Contains(gamestate.ScoringDice, i) {
+			roll += setStringColour(dice_sides[e-1], RED)
+		} else {
+			roll += dice_sides[e-1]
+		}
 	}
 	players := ""
 	for _, e := range gamestate.Players {

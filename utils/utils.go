@@ -13,3 +13,12 @@ func WaitForKeypress(verbose bool) string {
 	}
 	return s
 }
+
+func Contains(slice []int, element int) bool {
+	for _, v := range slice {
+		if v == element {
+			return true
+		}
+	}
+	return false
+}
