@@ -10,10 +10,10 @@ func main() {
 	tui.TuiInit()
 	var splayers []string
 	name := ""
-	for true {
+	for {
 		tui.TuiRenderWelcomeLocal(splayers)
 		var c string
-		for true {
+		for {
 			c = utils.WaitForKeypress(true)
 			if c == "\n" || c == "." {
 				break
