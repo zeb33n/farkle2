@@ -30,7 +30,7 @@ func Score(dice []int) (int, int, []int) {
 		if count >= 4 {
 			score += 1000 * (count - 3)
 			numDice -= count
-			scoringPositions = positions[value]
+			scoringPositions = append(scoringPositions, positions[value]...)
 		} else if count == 3 {
 			if value == 1 {
 				score += 300
@@ -38,17 +38,17 @@ func Score(dice []int) (int, int, []int) {
 				score += value * 100
 			}
 			numDice -= count
-			scoringPositions = positions[value]
+			scoringPositions = append(scoringPositions, positions[value]...)
 		} else {
 			if value == 1 {
 				score += count * 100
 				numDice -= count
-				scoringPositions = positions[value]
+				scoringPositions = append(scoringPositions, positions[value]...)
 			}
 			if value == 5 {
 				score += count * 50
 				numDice -= count
-				scoringPositions = positions[value]
+				scoringPositions = append(scoringPositions, positions[value]...)
 			}
 		}
 	}
