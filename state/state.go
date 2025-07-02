@@ -1,3 +1,4 @@
+// Package state
 package state
 
 type Player struct {
@@ -7,6 +8,7 @@ type Player struct {
 
 type GameState struct {
 	Dice          []int
+	ScoringDice   []int
 	RoundScore    int
 	CurrentScore  int
 	CurrentPlayer int
