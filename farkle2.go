@@ -1,17 +1,16 @@
 package main
 
 import (
-	"github.com/zeb33n/farkle2/game"
-	"github.com/zeb33n/farkle2/tui"
+	"github.com/zeb33n/farkle2/core"
 	"github.com/zeb33n/farkle2/utils"
 )
 
 func main() {
-	tui.TuiInit()
+	core.TuiInit()
 	var splayers []string
 	name := ""
 	for {
-		tui.TuiRenderWelcomeLocal(splayers)
+		core.TuiRenderWelcomeLocal(splayers)
 		var c string
 		for {
 			c = utils.WaitForKeypress(true)
@@ -26,7 +25,7 @@ func main() {
 		splayers = append(splayers, name)
 		name = ""
 	}
-	tui.TuiRenderTurnChange(splayers[0])
-	game.RunGame(splayers, 10000)
-	tui.TuiClose()
+	core.TuiRenderTurnChange(splayers[0])
+	core.RunGame(splayers, 10000)
+	core.TuiClose()
 }

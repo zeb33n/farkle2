@@ -1,34 +1,45 @@
-// Package game
-package game
+// Package core
+package core
 
 import (
 	"math/rand"
 
-	"github.com/zeb33n/farkle2/score"
-	"github.com/zeb33n/farkle2/state"
-	"github.com/zeb33n/farkle2/tui"
 	"github.com/zeb33n/farkle2/utils"
 )
 
-func passTurn(gamestate *state.GameState) {
+type Player struct {
+	Name  string
+	Score int
+}
+
+type GameState struct {
+	Dice          []int
+	ScoringDice   []int
+	RoundScore    int
+	CurrentScore  int
+	CurrentPlayer int
+	Players       []Player
+}
+
+func passTurn(gamestate *GameState) {
 	gamestate.CurrentPlayer++
 	if gamestate.CurrentPlayer == len(gamestate.Players) {
 		gamestate.CurrentPlayer = 0
 	}
 	gamestate.CurrentScore = 0
 	gamestate.Dice = make([]int, 6)
-	tui.TuiRenderTurnChange(gamestate.Players[gamestate.CurrentPlayer].Name)
+	TuiRenderTurnChange(gamestate.Players[gamestate.CurrentPlayer].Name)
 }
 
-func takeTurn(gamestate *state.GameState) {
+func takeTurn(gamestate *GameState) {
 	for i := range gamestate.Dice {
 		gamestate.Dice[i] = rand.Intn(6) + 1
 	}
-	roundScore, numDice, positions := score.Score(gamestate.Dice)
+	roundScore, numDice, positions := Score(gamestate.Dice)
 	gamestate.ScoringDice = positions
 	gamestate.RoundScore = roundScore
 	gamestate.CurrentScore += roundScore
-	tui.TuiRenderGamestate(gamestate)
+	TuiRenderGamestate(gamestate)
 	gamestate.Dice = make([]int, numDice)
 	if roundScore == 0 {
 		gamestate.CurrentScore = 0
@@ -39,7 +50,7 @@ func takeTurn(gamestate *state.GameState) {
 	}
 }
 
-func checkForWinner(players []state.Player, finalscore int) bool {
+func checkForWinner(players []Player, finalscore int) bool {
 	for _, player := range players {
 		if player.Score >= finalscore {
 			return false
@@ -49,11 +60,11 @@ func checkForWinner(players []state.Player, finalscore int) bool {
 }
 
 func RunGame(splayers []string, finalscore int) {
-	players := make([]state.Player, len(splayers))
+	players := make([]Player, len(splayers))
 	for i, e := range splayers {
-		players[i] = state.Player{Name: e, Score: 0}
+		players[i] = Player{Name: e, Score: 0}
 	}
-	gamestate := &state.GameState{
+	gamestate := &GameState{
 		Dice:          make([]int, 6),
 		ScoringDice:   []int{},
 		RoundScore:    0,

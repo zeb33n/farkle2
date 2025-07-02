@@ -1,5 +1,5 @@
-// Package tui
-package tui
+// Package core
+package core
 
 import (
 	"fmt"
@@ -8,8 +8,6 @@ import (
 	"os/signal"
 	"slices"
 	"strings"
-
-	"github.com/zeb33n/farkle2/state"
 )
 
 var lenLastRender int = 0
@@ -44,7 +42,7 @@ func setStringColour(s string, colour colourKind) string {
 	return COLOURS[colour] + s + COLOURS[RESET]
 }
 
-func TuiRenderGamestate(gamestate *state.GameState) {
+func TuiRenderGamestate(gamestate *GameState) {
 	diceSides := []string{"[.]", "[:]", "[.:]", "[::]", "[:.:]", "[:::]"}
 	roll := ""
 	for i, e := range gamestate.Dice {

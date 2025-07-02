@@ -1,5 +1,5 @@
-// Package score
-package score
+// Package core
+package core
 
 import (
 	"maps"
