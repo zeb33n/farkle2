@@ -20,8 +20,8 @@ func (*ioLocal) AwaitInput() core.Input {
 	}
 }
 
-func (io *ioLocal) AwaitInputPlayer(_ string) core.Input {
-	return io.AwaitInput()
+func (io *ioLocal) AwaitInputPlayer(_ string) core.MsgType {
+	return io.AwaitInput().Msg
 }
 
 func (*ioLocal) OutputGamestate(gs *core.GameState) {

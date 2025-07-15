@@ -75,9 +75,11 @@ func (g *Game) RunGame(splayers []string, finalscore int) {
 		Players:       players,
 	}
 	for checkForWinner(gamestate.Players, finalscore) {
-		if g.IO.AwaitInputPlayer(gamestate.Players[gamestate.CurrentPlayer].Name) == ROLL {
+		msg := g.IO.AwaitInputPlayer(gamestate.Players[gamestate.CurrentPlayer].Name)
+		switch msg {
+		case ROLL:
 			g.takeTurn(gamestate)
-		} else {
+		case BANK:
 			gamestate.Players[gamestate.CurrentPlayer].Score += gamestate.CurrentScore
 			g.passTurn(gamestate)
 			g.takeTurn(gamestate)
