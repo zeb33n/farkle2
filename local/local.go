@@ -11,7 +11,7 @@ func (*ioLocal) AwaitInput() core.Input {
 	for {
 		switch core.WaitForKeyPress(false) {
 		case "r":
-			return core.Input{PlayerName: "", Msg: core.BANK}
+			return core.Input{PlayerName: "", Msg: core.ROLL}
 		case "b":
 			return core.Input{PlayerName: "", Msg: core.BANK}
 		default:

@@ -29,6 +29,16 @@ func (io *ioServer) AwaitInput() core.Input {
 	panic("Channel Closed before input received")
 }
 
+func (io *ioServer) AwaitInputPlayer(player string) core.MsgType {
+	for {
+		input := io.AwaitInput()
+		if input.PlayerName != player {
+			continue
+		}
+		return input.Msg
+	}
+}
+
 func (*ioServer) OutputGamestate(gs *core.GameState) {
 	// send output down the channels
 	// might need some json serialisarion
@@ -80,12 +90,12 @@ func (io *ioServer) ServerWelcome() {
 	readys := []bool{}
 	i := 0
 	for {
-		input := io.AwaitInput(false)
-		players = append(players, name)
+		input := io.AwaitInput()
+		players = append(players, input.PlayerName)
 		readys = append(readys, false)
-		playersIndex[name] = i
+		playersIndex[input.PlayerName] = i
 		i++
-		println(name)
+		println(input.PlayerName)
 	}
 	game := core.Game{IO: io}
 	game.RunGame(players, 10000)
