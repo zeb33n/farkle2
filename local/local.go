@@ -3,18 +3,50 @@ package local
 
 import (
 	"github.com/zeb33n/farkle2/core"
-	"github.com/zeb33n/farkle2/utils"
 )
 
+type ioLocal struct{}
+
+func (*ioLocal) AwaitInput() core.Input {
+	for {
+		switch core.WaitForKeyPress(false) {
+		case "r":
+			return core.Input{PlayerName: "", Msg: core.BANK}
+		case "b":
+			return core.Input{PlayerName: "", Msg: core.BANK}
+		default:
+			continue
+		}
+	}
+}
+
+func (io *ioLocal) AwaitInputPlayer(_ string) core.Input {
+	return io.AwaitInput()
+}
+
+func (*ioLocal) OutputGamestate(gs *core.GameState) {
+	core.TuiRenderGamestate(gs)
+}
+
+func (*ioLocal) OutputTurnChange(name string) {
+	core.TuiRenderTurnChange(name)
+}
+
+func (*ioLocal) OutputWelcome(names []string) {
+	core.TuiRenderWelcomeLocal(names)
+}
+
 func LocalRun() {
+	ioHandler := ioLocal{}
 	core.TuiInit()
+
 	var splayers []string
 	name := ""
 	for {
-		core.TuiRenderWelcomeLocal(splayers)
+		ioHandler.OutputWelcome(splayers)
 		var c string
 		for {
-			c = utils.WaitForKeypress(true)
+			c = core.WaitForKeyPress(true)
 			if c == "\n" || c == "." {
 				break
 			}
@@ -26,7 +58,8 @@ func LocalRun() {
 		splayers = append(splayers, name)
 		name = ""
 	}
-	core.TuiRenderTurnChange(splayers[0])
-	core.RunGame(splayers, 10000)
+	ioHandler.OutputTurnChange(splayers[0])
+	game := core.Game{IO: &ioLocal{}}
+	game.RunGame(splayers, 10000)
 	core.TuiClose()
 }

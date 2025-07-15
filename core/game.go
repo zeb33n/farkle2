@@ -3,8 +3,6 @@ package core
 
 import (
 	"math/rand"
-
-	"github.com/zeb33n/farkle2/utils"
 )
 
 type Player struct {
@@ -21,17 +19,21 @@ type GameState struct {
 	Players       []Player
 }
 
-func passTurn(gamestate *GameState) {
+type Game struct {
+	IO inputOutput
+}
+
+func (g *Game) passTurn(gamestate *GameState) {
 	gamestate.CurrentPlayer++
 	if gamestate.CurrentPlayer == len(gamestate.Players) {
 		gamestate.CurrentPlayer = 0
 	}
 	gamestate.CurrentScore = 0
 	gamestate.Dice = make([]int, 6)
-	TuiRenderTurnChange(gamestate.Players[gamestate.CurrentPlayer].Name)
+	g.IO.OutputTurnChange(gamestate.Players[gamestate.CurrentPlayer].Name)
 }
 
-func takeTurn(gamestate *GameState) {
+func (g *Game) takeTurn(gamestate *GameState) {
 	for i := range gamestate.Dice {
 		gamestate.Dice[i] = rand.Intn(6) + 1
 	}
@@ -39,11 +41,11 @@ func takeTurn(gamestate *GameState) {
 	gamestate.ScoringDice = positions
 	gamestate.RoundScore = roundScore
 	gamestate.CurrentScore += roundScore
-	TuiRenderGamestate(gamestate)
+	g.IO.OutputGamestate(gamestate)
 	gamestate.Dice = make([]int, numDice)
 	if roundScore == 0 {
 		gamestate.CurrentScore = 0
-		passTurn(gamestate)
+		g.passTurn(gamestate)
 	}
 	if numDice == 0 {
 		gamestate.Dice = make([]int, 6)
@@ -59,7 +61,7 @@ func checkForWinner(players []Player, finalscore int) bool {
 	return true
 }
 
-func RunGame(splayers []string, finalscore int) {
+func (g *Game) RunGame(splayers []string, finalscore int) {
 	players := make([]Player, len(splayers))
 	for i, e := range splayers {
 		players[i] = Player{Name: e, Score: 0}
@@ -73,15 +75,12 @@ func RunGame(splayers []string, finalscore int) {
 		Players:       players,
 	}
 	for checkForWinner(gamestate.Players, finalscore) {
-		// TODO make more generic (waitForInput)
-		// Injectable reader. easy to swap out whether reading from bot, stdin, or socket
-		x := utils.WaitForKeypress(false)
-		if x == "r" {
-			takeTurn(gamestate)
+		if g.IO.AwaitInputPlayer(gamestate.Players[gamestate.CurrentPlayer].Name) == ROLL {
+			g.takeTurn(gamestate)
 		} else {
 			gamestate.Players[gamestate.CurrentPlayer].Score += gamestate.CurrentScore
-			passTurn(gamestate)
-			takeTurn(gamestate)
+			g.passTurn(gamestate)
+			g.takeTurn(gamestate)
 		}
 	}
 	println("WINNER!")
