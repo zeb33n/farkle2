@@ -60,6 +60,7 @@ func TuiRenderGamestate(gamestate *GameState) {
 %s
 Player: %s
 RollScore: %d CurrentScore: %d
+
 %s
 controls: [r] roll [b] bank
 `,
@@ -73,11 +74,20 @@ controls: [r] roll [b] bank
 }
 
 func TuiRenderTurnChange(gs *GameState) {
+	players := ""
+	for _, e := range gs.Players {
+		players += fmt.Sprintf("%s: %d\n", e.Name, e.Score)
+	}
 	gameString := fmt.Sprintf(`
-%s's turn! 
+
+%s's turn!
+
+
+%s
 controls: [r] roll [b] bank
 `,
 		gs.Players[gs.CurrentPlayer].Name,
+		players,
 	)
 	renderString(gameString)
 }
