@@ -3,7 +3,6 @@ package core
 type inputOutput interface {
 	AwaitInput() Input
 	AwaitInputPlayer(string) MsgTypeC
-	// maybe all these should take the gamestate
 	OutputGamestate(*GameState)
 	OutputTurnChange(*GameState)
 	OutputWelcome(*map[string]bool)
