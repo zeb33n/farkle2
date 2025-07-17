@@ -21,8 +21,8 @@ func (io *ioServer) AwaitInput() core.Input {
 		var data core.Input
 		err := json.Unmarshal(bytes, &data)
 		if err != nil {
-			// once I have logging need to log without exiting and continue here
-			log.Fatal(err)
+			fmt.Printf("WARNING: bad json received %v\n", err)
+			continue
 		}
 		return data
 	}
@@ -80,10 +80,6 @@ func (io *ioServer) handleConnection(c net.Conn) {
 	}()
 }
 
-// need a mutex for players and readys
-// need to refactor the await input method
-// -> AwaitInput
-// -> AwaitInputType
 func (io *ioServer) ServerWelcome() {
 	players := []string{}
 	playersIndex := map[string]int{}
@@ -91,14 +87,35 @@ func (io *ioServer) ServerWelcome() {
 	i := 0
 	for {
 		input := io.AwaitInput()
-		players = append(players, input.PlayerName)
-		readys = append(readys, false)
-		playersIndex[input.PlayerName] = i
-		i++
-		println(input.PlayerName)
+		switch input.Msg {
+		default:
+			continue
+		case core.READY:
+			readys[playersIndex[input.PlayerName]] = true
+		case core.NAME:
+			players = append(players, input.PlayerName)
+			readys = append(readys, false)
+			playersIndex[input.PlayerName] = i
+			i++
+		}
+		for j, playerName := range players {
+			fmt.Printf("%s: %v\n", playerName, readys[j])
+		}
+		if allTrue(readys) {
+			break
+		}
 	}
 	game := core.Game{IO: io}
 	game.RunGame(players, 10000)
+}
+
+func allTrue(s []bool) bool {
+	for _, e := range s {
+		if !e {
+			return false
+		}
+	}
+	return true
 }
 
 func ServerRun() {
