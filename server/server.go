@@ -29,7 +29,7 @@ func (io *ioServer) AwaitInput() core.Input {
 	panic("Channel Closed before input received")
 }
 
-func (io *ioServer) AwaitInputPlayer(player string) core.MsgType {
+func (io *ioServer) AwaitInputPlayer(player string) core.MsgTypeC {
 	for {
 		input := io.AwaitInput()
 		if input.PlayerName != player {
@@ -40,33 +40,24 @@ func (io *ioServer) AwaitInputPlayer(player string) core.MsgType {
 }
 
 func (io *ioServer) OutputGamestate(gs *core.GameState) {
-	gameBytes, err := json.Marshal(gs)
-	if err != nil {
-		log.Fatal("Could not Marshal the gamestate")
-	}
+	gameBytes := marshallOuput(gs)
 	for _, ch := range io.out {
 		ch <- gameBytes
 	}
 }
 
 func (io *ioServer) OutputTurnChange(name string) {
-	out := core.TurnChange{Name: name}
-	turnBytes, err := json.Marshal(out)
-	if err != nil {
-		log.Fatal("Could not Marshal the gamestate")
-	}
+	turnBytes := marshallOuput(name)
 	for _, ch := range io.out {
 		ch <- turnBytes
 	}
 }
 
 func (io *ioServer) OutputWelcome(names []string) {
-	println("Awaiting Game Start")
-	for _, name := range names {
-		println(name)
+	welcomeBytes := marshallOuput(names)
+	for _, ch := range io.out {
+		ch <- welcomeBytes
 	}
-	// send output down the channels
-	// might need some json serialisarion
 }
 
 func (io *ioServer) handleConnection(c net.Conn) {
@@ -94,7 +85,7 @@ func (io *ioServer) handleConnection(c net.Conn) {
 	}()
 }
 
-func (io *ioServer) ServerWelcome() {
+func (io *ioServer) serverWelcome() {
 	players := []string{}
 	playersIndex := map[string]int{}
 	readys := []bool{}
@@ -115,6 +106,7 @@ func (io *ioServer) ServerWelcome() {
 		for j, playerName := range players {
 			fmt.Printf("%s: %v\n", playerName, readys[j])
 		}
+		io.OutputWelcome(players)
 		if allTrue(readys) {
 			break
 		}
@@ -132,6 +124,15 @@ func allTrue(s []bool) bool {
 	return true
 }
 
+func marshallOuput(msg any) []byte {
+	out := core.Output{MsgType: core.TURNCHANGE, Msg: msg}
+	bytes, err := json.Marshal(out)
+	if err != nil {
+		log.Fatal("Could not Marshal the gamestate")
+	}
+	return bytes
+}
+
 func ServerRun() {
 	l, err := net.Listen("unix", "/tmp/echo.sock")
 	if err != nil {
@@ -139,7 +140,7 @@ func ServerRun() {
 	}
 	// listen for connections
 	io := ioServer{in: make(chan []byte), out: []chan []byte{}}
-	go io.ServerWelcome()
+	go io.serverWelcome()
 	for {
 		fd, err := l.Accept()
 		if err != nil {
@@ -147,6 +148,4 @@ func ServerRun() {
 		}
 		go io.handleConnection(fd)
 	}
-
-	// wait for game start
 }

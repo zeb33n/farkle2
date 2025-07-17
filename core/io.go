@@ -2,29 +2,38 @@ package core
 
 type inputOutput interface {
 	AwaitInput() Input
-	AwaitInputPlayer(string) MsgType
+	AwaitInputPlayer(string) MsgTypeC
 	OutputGamestate(*GameState)
 	OutputTurnChange(string)
 	OutputWelcome([]string)
 }
 
-type MsgType int
+type MsgTypeC int
 
 const (
-	NAME MsgType = iota
+	NAME MsgTypeC = iota
 	READY
 	BANK
 	ROLL
 	UNREADY
 )
 
-type Input struct {
-	PlayerName string
-	Msg        MsgType
+type MsgTypeS int
+
+const (
+	WELCOME MsgTypeS = iota
+	TURNCHANGE
+	GAMESTATE
+)
+
+type Output struct {
+	MsgType MsgTypeS
+	Msg     any
 }
 
-type TurnChange struct {
-	Name string
+type Input struct {
+	PlayerName string
+	Msg        MsgTypeC
 }
 
 type WelcomeFromServer struct {

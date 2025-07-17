@@ -20,7 +20,7 @@ func (*ioLocal) AwaitInput() core.Input {
 	}
 }
 
-func (io *ioLocal) AwaitInputPlayer(_ string) core.MsgType {
+func (io *ioLocal) AwaitInputPlayer(_ string) core.MsgTypeC {
 	return io.AwaitInput().Msg
 }
 
