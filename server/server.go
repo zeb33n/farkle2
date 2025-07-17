@@ -46,14 +46,14 @@ func (io *ioServer) OutputGamestate(gs *core.GameState) {
 	}
 }
 
-func (io *ioServer) OutputTurnChange(name string) {
-	turnBytes := marshallOuput(name)
+func (io *ioServer) OutputTurnChange(gs *core.GameState) {
+	turnBytes := marshallOuput(gs)
 	for _, ch := range io.out {
 		ch <- turnBytes
 	}
 }
 
-func (io *ioServer) OutputWelcome(names []string) {
+func (io *ioServer) OutputWelcome(names *map[string]bool) {
 	welcomeBytes := marshallOuput(names)
 	for _, ch := range io.out {
 		ch <- welcomeBytes
@@ -86,37 +86,31 @@ func (io *ioServer) handleConnection(c net.Conn) {
 }
 
 func (io *ioServer) serverWelcome() {
-	players := []string{}
-	playersIndex := map[string]int{}
-	readys := []bool{}
-	i := 0
+	players := map[string]bool{}
 	for {
 		input := io.AwaitInput()
 		switch input.Msg {
 		default:
 			continue
 		case core.READY:
-			readys[playersIndex[input.PlayerName]] = true
+			players[input.PlayerName] = true
 		case core.NAME:
-			players = append(players, input.PlayerName)
-			readys = append(readys, false)
-			playersIndex[input.PlayerName] = i
-			i++
+			players[input.PlayerName] = false
 		}
-		for j, playerName := range players {
-			fmt.Printf("%s: %v\n", playerName, readys[j])
+		for k, v := range players {
+			fmt.Printf("%s: %v\n", k, v)
 		}
-		io.OutputWelcome(players)
-		if allTrue(readys) {
+		io.OutputWelcome(&players)
+		if allTrue(&players) {
 			break
 		}
 	}
 	game := core.Game{IO: io}
-	game.RunGame(players, 10000)
+	game.RunGame(&players, 10000)
 }
 
-func allTrue(s []bool) bool {
-	for _, e := range s {
+func allTrue(s *map[string]bool) bool {
+	for _, e := range *s {
 		if !e {
 			return false
 		}
@@ -125,7 +119,7 @@ func allTrue(s []bool) bool {
 }
 
 func marshallOuput(msg any) []byte {
-	out := core.Output{MsgType: core.TURNCHANGE, Msg: msg}
+	out := core.Output{Msg: core.TURNCHANGE, Content: msg}
 	bytes, err := json.Marshal(out)
 	if err != nil {
 		log.Fatal("Could not Marshal the gamestate")

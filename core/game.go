@@ -30,7 +30,7 @@ func (g *Game) passTurn(gamestate *GameState) {
 	}
 	gamestate.CurrentScore = 0
 	gamestate.Dice = make([]int, 6)
-	g.IO.OutputTurnChange(gamestate.Players[gamestate.CurrentPlayer].Name)
+	g.IO.OutputTurnChange(gamestate)
 }
 
 func (g *Game) takeTurn(gamestate *GameState) {
@@ -61,10 +61,10 @@ func checkForWinner(players []Player, finalscore int) bool {
 	return true
 }
 
-func (g *Game) RunGame(splayers []string, finalscore int) {
-	players := make([]Player, len(splayers))
-	for i, e := range splayers {
-		players[i] = Player{Name: e, Score: 0}
+func (g *Game) RunGame(splayers *map[string]bool, finalscore int) {
+	players := []Player{}
+	for k := range *splayers {
+		players = append(players, Player{Name: k, Score: 0})
 	}
 	gamestate := &GameState{
 		Dice:          make([]int, 6),
@@ -74,6 +74,7 @@ func (g *Game) RunGame(splayers []string, finalscore int) {
 		CurrentPlayer: 0,
 		Players:       players,
 	}
+	g.IO.OutputTurnChange(gamestate)
 	for checkForWinner(gamestate.Players, finalscore) {
 		msg := g.IO.AwaitInputPlayer(gamestate.Players[gamestate.CurrentPlayer].Name)
 		switch msg {

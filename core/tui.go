@@ -72,12 +72,12 @@ controls: [r] roll [b] bank
 	renderString(gameString)
 }
 
-func TuiRenderTurnChange(player string) {
+func TuiRenderTurnChange(gs *GameState) {
 	gameString := fmt.Sprintf(`
 %s's turn! 
 controls: [r] roll [b] bank
 `,
-		player,
+		gs.Players[gs.CurrentPlayer].Name,
 	)
 	renderString(gameString)
 }

@@ -3,9 +3,10 @@ package core
 type inputOutput interface {
 	AwaitInput() Input
 	AwaitInputPlayer(string) MsgTypeC
+	// maybe all these should take the gamestate
 	OutputGamestate(*GameState)
-	OutputTurnChange(string)
-	OutputWelcome([]string)
+	OutputTurnChange(*GameState)
+	OutputWelcome(*map[string]bool)
 }
 
 type MsgTypeC int
@@ -27,8 +28,8 @@ const (
 )
 
 type Output struct {
-	MsgType MsgTypeS
-	Msg     any
+	Msg     MsgTypeS
+	Content any
 }
 
 type Input struct {

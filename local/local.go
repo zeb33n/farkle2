@@ -28,22 +28,26 @@ func (*ioLocal) OutputGamestate(gs *core.GameState) {
 	core.TuiRenderGamestate(gs)
 }
 
-func (*ioLocal) OutputTurnChange(name string) {
-	core.TuiRenderTurnChange(name)
+func (*ioLocal) OutputTurnChange(gs *core.GameState) {
+	core.TuiRenderTurnChange(gs)
 }
 
-func (*ioLocal) OutputWelcome(names []string) {
-	core.TuiRenderWelcomeLocal(names)
+func (*ioLocal) OutputWelcome(names *map[string]bool) {
+	players := []string{}
+	for k := range *names {
+		players = append(players, k)
+	}
+	core.TuiRenderWelcomeLocal(players)
 }
 
 func LocalRun() {
 	ioHandler := ioLocal{}
 	core.TuiInit()
 
-	var splayers []string
+	splayers := map[string]bool{}
 	name := ""
 	for {
-		ioHandler.OutputWelcome(splayers)
+		ioHandler.OutputWelcome(&splayers)
 		var c string
 		for {
 			c = core.WaitForKeyPress(true)
@@ -55,11 +59,10 @@ func LocalRun() {
 		if c == "." {
 			break
 		}
-		splayers = append(splayers, name)
+		splayers[name] = true
 		name = ""
 	}
-	ioHandler.OutputTurnChange(splayers[0])
 	game := core.Game{IO: &ioLocal{}}
-	game.RunGame(splayers, 10000)
+	game.RunGame(&splayers, 10000)
 	core.TuiClose()
 }
