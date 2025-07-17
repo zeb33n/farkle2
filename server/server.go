@@ -12,7 +12,7 @@ import (
 
 type ioServer struct {
 	in  chan []byte
-	out []chan string
+	out []chan []byte
 }
 
 func (io *ioServer) AwaitInput() core.Input {
@@ -39,13 +39,25 @@ func (io *ioServer) AwaitInputPlayer(player string) core.MsgType {
 	}
 }
 
-func (*ioServer) OutputGamestate(gs *core.GameState) {
-	// send output down the channels
-	// might need some json serialisarion
+func (io *ioServer) OutputGamestate(gs *core.GameState) {
+	gameBytes, err := json.Marshal(gs)
+	if err != nil {
+		log.Fatal("Could not Marshal the gamestate")
+	}
+	for _, ch := range io.out {
+		ch <- gameBytes
+	}
 }
 
-func (*ioServer) OutputTurnChange(name string) {
-	// send output down the channels
+func (io *ioServer) OutputTurnChange(name string) {
+	out := core.TurnChange{Name: name}
+	turnBytes, err := json.Marshal(out)
+	if err != nil {
+		log.Fatal("Could not Marshal the gamestate")
+	}
+	for _, ch := range io.out {
+		ch <- turnBytes
+	}
 }
 
 func (io *ioServer) OutputWelcome(names []string) {
@@ -58,8 +70,9 @@ func (io *ioServer) OutputWelcome(names []string) {
 }
 
 func (io *ioServer) handleConnection(c net.Conn) {
-	outChannel := make(chan string)
+	outChannel := make(chan []byte)
 	io.out = append(io.out, outChannel)
+	// Handle messages from clients
 	go func() {
 		for {
 			buf := make([]byte, 512)
@@ -70,9 +83,10 @@ func (io *ioServer) handleConnection(c net.Conn) {
 			io.in <- buf[:n]
 		}
 	}()
+	// Send messages to clients
 	go func() {
 		for s := range outChannel {
-			_, err := c.Write([]byte(s))
+			_, err := c.Write(s)
 			if err != nil {
 				fmt.Println("ERROR: writing to socket", err)
 			}
@@ -124,7 +138,7 @@ func ServerRun() {
 		log.Fatal("listen error:", err)
 	}
 	// listen for connections
-	io := ioServer{in: make(chan []byte), out: []chan string{}}
+	io := ioServer{in: make(chan []byte), out: []chan []byte{}}
 	go io.ServerWelcome()
 	for {
 		fd, err := l.Accept()

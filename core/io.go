@@ -23,6 +23,10 @@ type Input struct {
 	Msg        MsgType
 }
 
+type TurnChange struct {
+	Name string
+}
+
 type WelcomeFromServer struct {
 	MessageType string
 	Players     []string
