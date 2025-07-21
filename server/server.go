@@ -40,21 +40,21 @@ func (io *ioServer) AwaitInputPlayer(player string) core.MsgTypeC {
 }
 
 func (io *ioServer) OutputGamestate(gs *core.GameState) {
-	gameBytes := marshallOuput(gs)
+	gameBytes := marshallOuput(core.GAMESTATE, gs)
 	for _, ch := range io.out {
 		ch <- gameBytes
 	}
 }
 
 func (io *ioServer) OutputTurnChange(gs *core.GameState) {
-	turnBytes := marshallOuput(gs)
+	turnBytes := marshallOuput(core.TURNCHANGE, gs)
 	for _, ch := range io.out {
 		ch <- turnBytes
 	}
 }
 
 func (io *ioServer) OutputWelcome(names *map[string]bool) {
-	welcomeBytes := marshallOuput(names)
+	welcomeBytes := marshallOuput(core.WELCOME, names)
 	for _, ch := range io.out {
 		ch <- welcomeBytes
 	}
@@ -118,8 +118,8 @@ func allTrue(s *map[string]bool) bool {
 	return true
 }
 
-func marshallOuput(msg any) []byte {
-	out := core.Output{Msg: core.TURNCHANGE, Content: msg}
+func marshallOuput(msg core.MsgTypeS, content any) []byte {
+	out := core.Output{Msg: msg, Content: content}
 	bytes, err := json.Marshal(out)
 	if err != nil {
 		log.Fatal("Could not Marshal the gamestate")
@@ -140,6 +140,6 @@ func ServerRun() {
 		if err != nil {
 			log.Fatal("accept error:", err)
 		}
-		go io.handleConnection(fd)
+		io.handleConnection(fd)
 	}
 }
