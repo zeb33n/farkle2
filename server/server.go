@@ -100,13 +100,14 @@ func (io *ioServer) serverWelcome() {
 		for k, v := range players {
 			fmt.Printf("%s: %v\n", k, v)
 		}
-		io.OutputWelcome(&players)
 		if allTrue(&players) {
 			break
 		}
+		io.OutputWelcome(&players)
 	}
 	game := core.Game{IO: io}
 	game.RunGame(&players, 10000)
+	println("starting game")
 }
 
 func allTrue(s *map[string]bool) bool {

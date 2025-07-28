@@ -7,7 +7,8 @@ import (
 	"io"
 	"log"
 	"net"
-	"reflect"
+
+	// "reflect"
 
 	"github.com/zeb33n/farkle2/core"
 )
@@ -20,20 +21,25 @@ func reader(r io.Reader) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		json.Unmarshal(buf[:n], &output)
+		fmt.Printf("%s\n", buf[:n])
+		err = json.Unmarshal(buf[:n], &output)
+		if err != nil {
+			log.Fatal("invalid json recieved from server")
+		}
 		switch output.Msg {
 		case core.WELCOME:
-			fmt.Printf("%v\n", output.Content)
-			fmt.Println(reflect.TypeOf(output.Content))
 			players, ok := output.Content.(map[string]any)
 			if !ok {
 				log.Fatal("couldnt unmarshall welcome")
 			}
-			splayers := []string{}
-			for k := range players {
-				splayers = append(splayers, k)
+			splayers := map[string]bool{}
+			for k, v := range players {
+				splayers[k], ok = v.(bool)
+				if !ok {
+					log.Fatal("couldnt unmarshall welcome bytes")
+				}
 			}
-			core.TuiRenderWelcomeLocal(splayers)
+			core.TuiRenderWelcomeServer(splayers)
 		case core.GAMESTATE:
 			gs, ok := output.Content.(core.GameState)
 			if !ok {
@@ -50,7 +56,7 @@ func reader(r io.Reader) {
 	}
 }
 
-func waitForName(c net.Conn) {
+func waitForName(c net.Conn) string {
 	var name string
 	for {
 		char := core.WaitForKeyPress(true)
@@ -60,6 +66,21 @@ func waitForName(c net.Conn) {
 		name += char
 	}
 	b, err := json.Marshal(core.Input{PlayerName: name, Msg: core.NAME})
+	if err != nil {
+		log.Fatal(err)
+	}
+	c.Write(b)
+	return name
+}
+
+func waitForReady(c net.Conn, name string) {
+	for {
+		char := core.WaitForKeyPress(false)
+		if char == "." {
+			break
+		}
+	}
+	b, err := json.Marshal(core.Input{PlayerName: name, Msg: core.READY})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -77,7 +98,8 @@ func ClientRun() {
 	}
 	defer c.Close()
 	go reader(c)
-	go waitForName(c)
+	name := waitForName(c)
+	waitForReady(c, name)
 	for {
 	}
 }

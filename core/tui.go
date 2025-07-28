@@ -105,7 +105,25 @@ EnterName:
 		players,
 	)
 	renderString(welcomeString)
-	// exec.Command("stty", "-F", "/dev/tty", "echo").Run()
+}
+
+func TuiRenderWelcomeServer(splayers map[string]bool) {
+	players := ""
+	for k, v := range splayers {
+		readyness := setStringColour("waiting", RED)
+		if v {
+			readyness = setStringColour("ready", GREEN)
+		}
+		players += fmt.Sprintf("%s: %s\n", k, readyness)
+	}
+	welcomeString := fmt.Sprintf(`
+%s
+Press [.] to start
+EnterName: 
+`,
+		players,
+	)
+	renderString(welcomeString)
 }
 
 func renderString(s string) {
