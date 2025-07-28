@@ -8,8 +8,6 @@ import (
 	"log"
 	"net"
 
-	// "reflect"
-
 	"github.com/zeb33n/farkle2/core"
 )
 
@@ -21,39 +19,66 @@ func reader(r io.Reader) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		fmt.Printf("%s\n", buf[:n])
 		err = json.Unmarshal(buf[:n], &output)
 		if err != nil {
-			log.Fatal("invalid json recieved from server")
+			fmt.Println("invalid json recieved from server")
+			fmt.Printf("%s\n", buf[:n])
+			log.Fatal(err)
 		}
 		switch output.Msg {
 		case core.WELCOME:
-			players, ok := output.Content.(map[string]any)
-			if !ok {
-				log.Fatal("couldnt unmarshall welcome")
-			}
-			splayers := map[string]bool{}
-			for k, v := range players {
-				splayers[k], ok = v.(bool)
-				if !ok {
-					log.Fatal("couldnt unmarshall welcome bytes")
-				}
-			}
-			core.TuiRenderWelcomeServer(splayers)
+			displayWelcome(output.Content)
 		case core.GAMESTATE:
-			gs, ok := output.Content.(core.GameState)
-			if !ok {
-				log.Fatal("couldnt unmarshall gamestate")
-			}
-			core.TuiRenderGamestate(&gs)
+			displayGameState(output.Content)
 		case core.TURNCHANGE:
-			gs, ok := output.Content.(core.GameState)
-			if !ok {
-				log.Fatal("couldnt unmarshall turnchange")
-			}
-			core.TuiRenderTurnChange(&gs)
+			displayTurnChange(output.Content)
 		}
 	}
+}
+
+func map2GameState(m map[string]any) core.GameState {
+	bytes, err := json.Marshal(m)
+	if err != nil {
+		log.Fatal(err)
+	}
+	gs := core.GameState{}
+	if err := json.Unmarshal(bytes, &gs); err != nil {
+		log.Fatal(err)
+	}
+	return gs
+}
+
+func displayTurnChange(content any) {
+	m, ok := content.(map[string]any)
+	if !ok {
+		log.Fatal("couldnt unmarshall turn change")
+	}
+	gs := map2GameState(m)
+	core.TuiRenderTurnChange(&gs)
+}
+
+func displayGameState(content any) {
+	m, ok := content.(map[string]any)
+	if !ok {
+		log.Fatal("couldnt unmarshall game state")
+	}
+	gs := map2GameState(m)
+	core.TuiRenderGamestate(&gs)
+}
+
+func displayWelcome(content any) {
+	players, ok := content.(map[string]any)
+	if !ok {
+		log.Fatal("couldnt unmarshall welcome")
+	}
+	splayers := map[string]bool{}
+	for k, v := range players {
+		splayers[k], ok = v.(bool)
+		if !ok {
+			log.Fatal("couldnt unmarshall welcome bytes")
+		}
+	}
+	core.TuiRenderWelcomeServer(splayers)
 }
 
 func waitForName(c net.Conn) string {
@@ -87,6 +112,26 @@ func waitForReady(c net.Conn, name string) {
 	c.Write(b)
 }
 
+func playGame(c net.Conn, name string) {
+	for {
+		char := core.WaitForKeyPress(false)
+		var b []byte
+		var err error
+		switch char {
+		case "r":
+			b, err = json.Marshal(core.Input{PlayerName: name, Msg: core.ROLL})
+		case "b":
+			b, err = json.Marshal(core.Input{PlayerName: name, Msg: core.BANK})
+		default:
+			continue
+		}
+		if err != nil {
+			log.Fatal(err)
+		}
+		c.Write(b)
+	}
+}
+
 func ClientRun() {
 	core.TuiInit()
 	defer core.TuiClose()
@@ -100,6 +145,7 @@ func ClientRun() {
 	go reader(c)
 	name := waitForName(c)
 	waitForReady(c, name)
+	playGame(c, name)
 	for {
 	}
 }
