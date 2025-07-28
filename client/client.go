@@ -3,7 +3,6 @@ package client
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"log"
 	"net"
@@ -12,17 +11,23 @@ import (
 )
 
 func reader(r io.Reader) {
-	buf := make([]byte, 1024)
+	buf := make([]byte, 256)
 	for {
+		// TODO this works fine for small games
+		// need a bigger bufferfor larger games
+		// or smaller game state
+		_, err := r.Read(buf[:1])
+		if err != nil {
+			log.Fatal(err)
+		}
+		n := int(buf[0])
 		output := core.Output{}
-		n, err := r.Read(buf[:])
+		n, err = r.Read(buf[:n])
 		if err != nil {
 			log.Fatal(err)
 		}
 		err = json.Unmarshal(buf[:n], &output)
 		if err != nil {
-			fmt.Println("invalid json recieved from server")
-			fmt.Printf("%s\n", buf[:n])
 			log.Fatal(err)
 		}
 		switch output.Msg {
@@ -146,6 +151,4 @@ func ClientRun() {
 	name := waitForName(c)
 	waitForReady(c, name)
 	playGame(c, name)
-	for {
-	}
 }

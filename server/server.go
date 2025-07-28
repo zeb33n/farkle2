@@ -66,7 +66,7 @@ func (io *ioServer) handleConnection(c net.Conn) {
 	// Handle messages from clients
 	go func() {
 		for {
-			buf := make([]byte, 512)
+			buf := make([]byte, 256)
 			n, err := c.Read(buf)
 			if err != nil {
 				log.Fatal("ERROR: reading into buffer", err)
@@ -77,7 +77,9 @@ func (io *ioServer) handleConnection(c net.Conn) {
 	// Send messages to clients
 	go func() {
 		for s := range outChannel {
+			s = append([]byte{byte(len(s))}, s...)
 			_, err := c.Write(s)
+			println(len(s))
 			if err != nil {
 				fmt.Println("ERROR: writing to socket", err)
 			}
