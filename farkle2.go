@@ -1,30 +1,32 @@
 package main
 
 import (
-	"github.com/zeb33n/farkle2/cli"
-	"github.com/zeb33n/farkle2/client"
-	"github.com/zeb33n/farkle2/local"
-	"github.com/zeb33n/farkle2/server"
+	"github.com/zeb33n/farkle2/game"
+	"github.com/zeb33n/farkle2/tui"
+	"github.com/zeb33n/farkle2/utils"
 )
 
-var modes = []cli.Mode{
-	{
-		Name: "local",
-		Help: "play a game localy against friends.",
-		Run:  local.LocalRun,
-	},
-	{
-		Name: "server",
-		Help: "start a game server",
-		Run:  server.ServerRun,
-	},
-	{
-		Name: "client",
-		Help: "connect to the server over a unix socket",
-		Run:  client.ClientRun,
-	},
-}
-
 func main() {
-	cli.CliRun(&modes)
+	tui.TuiInit()
+	var splayers []string
+	name := ""
+	for {
+		tui.TuiRenderWelcomeLocal(splayers)
+		var c string
+		for {
+			c = utils.WaitForKeypress(true)
+			if c == "\n" || c == "." {
+				break
+			}
+			name += c
+		}
+		if c == "." {
+			break
+		}
+		splayers = append(splayers, name)
+		name = ""
+	}
+	tui.TuiRenderTurnChange(splayers[0])
+	game.RunGame(splayers, 10000)
+	tui.TuiClose()
 }
