@@ -79,7 +79,6 @@ func (io *ioServer) handleConnection(c net.Conn) {
 		for s := range outChannel {
 			s = append([]byte{byte(len(s))}, s...)
 			_, err := c.Write(s)
-			println(len(s))
 			if err != nil {
 				fmt.Println("ERROR: writing to socket", err)
 			}
