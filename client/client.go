@@ -3,30 +3,16 @@ package client
 
 import (
 	"encoding/json"
-	"io"
 	"log"
 	"net"
 
 	"github.com/zeb33n/farkle2/core"
 )
 
-func reader(r io.Reader) {
-	buf := make([]byte, 256)
+func reader(c net.Conn) {
 	for {
-		// TODO this works fine for small games
-		// need a bigger bufferfor larger games
-		// or smaller game state
-		_, err := r.Read(buf[:1])
-		if err != nil {
-			log.Fatal(err)
-		}
-		n := int(buf[0])
 		output := core.Output{}
-		n, err = r.Read(buf[:n])
-		if err != nil {
-			log.Fatal(err)
-		}
-		err = json.Unmarshal(buf[:n], &output)
+		err := json.Unmarshal(core.SockRead(c), &output)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -99,7 +85,7 @@ func waitForName(c net.Conn) string {
 	if err != nil {
 		log.Fatal(err)
 	}
-	c.Write(b)
+	core.SockWrite(b, c)
 	return name
 }
 
@@ -114,7 +100,7 @@ func waitForReady(c net.Conn, name string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	c.Write(b)
+	core.SockWrite(b, c)
 }
 
 func playGame(c net.Conn, name string) {
@@ -133,7 +119,7 @@ func playGame(c net.Conn, name string) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		c.Write(b)
+		core.SockWrite(b, c)
 	}
 }
 
