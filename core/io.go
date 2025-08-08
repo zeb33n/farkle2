@@ -41,15 +41,46 @@ type Input struct {
 	Msg        MsgTypeC
 }
 
-func SockRead(c net.Conn) []byte {
-	// msgs max 1kb long
-	buf := make([]byte, 1024)
-	_, err := c.Read(buf[:1])
-	if err != nil {
-		log.Fatal(err)
+// frontmatterLen number of bytes in the frontmatter
+const frontmatterLen uint = 4
+
+func bytes2Uint(bs []byte) uint {
+	var out uint
+	for _, b := range bs {
+		if b > 9 {
+			log.Fatal("ERROR: cant encode byte as uint")
+		}
+		out = out*10 + uint(b)
 	}
-	n := int(buf[0])
-	n, err = c.Read(buf[:n])
+	return out
+}
+
+func uint2Bytes(ui uint) []byte {
+	if ui >= frontmatterLen*256 {
+		log.Fatal("ERROR: message is too long")
+	}
+	out := make([]byte, frontmatterLen)
+	i := len(out) - 1
+	for ui != 0 {
+		out[i] = byte(ui % 10)
+		ui /= 10
+		i--
+	}
+	return out
+}
+
+func SockRead(c net.Conn) []byte {
+	buf := make([]byte, frontmatterLen*256)
+	bs := []byte{}
+	for range frontmatterLen {
+		_, err := c.Read(buf[:1])
+		if err != nil {
+			log.Fatal(err)
+		}
+		bs = append(bs, buf[0])
+	}
+	n := bytes2Uint(bs)
+	_, err := c.Read(buf[:n])
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -57,7 +88,7 @@ func SockRead(c net.Conn) []byte {
 }
 
 func SockWrite(msg []byte, c net.Conn) {
-	msg = append([]byte{byte(len(msg))}, msg...)
+	msg = append(uint2Bytes(uint(len(msg))), msg...)
 	_, err := c.Write(msg)
 	if err != nil {
 		log.Fatal("ERROR: writing to socket", err)
