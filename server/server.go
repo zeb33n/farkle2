@@ -16,7 +16,6 @@ type ioServer struct {
 }
 
 func (io *ioServer) AwaitInput() core.Input {
-	// 90% sure this loop is blocking
 	for bytes := range io.in {
 		var data core.Input
 		err := json.Unmarshal(bytes, &data)
@@ -66,22 +65,13 @@ func (io *ioServer) handleConnection(c net.Conn) {
 	// Handle messages from clients
 	go func() {
 		for {
-			buf := make([]byte, 256)
-			n, err := c.Read(buf)
-			if err != nil {
-				log.Fatal("ERROR: reading into buffer", err)
-			}
-			io.in <- buf[:n]
+			io.in <- core.SockRead(c)
 		}
 	}()
 	// Send messages to clients
 	go func() {
 		for s := range outChannel {
-			s = append([]byte{byte(len(s))}, s...)
-			_, err := c.Write(s)
-			if err != nil {
-				fmt.Println("ERROR: writing to socket", err)
-			}
+			core.SockWrite(s, c)
 		}
 	}()
 }
