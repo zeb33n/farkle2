@@ -7,11 +7,17 @@ import (
 	"github.com/zeb33n/farkle2/server"
 )
 
-var modes = []cli.Mode{
+var commands = []cli.Mode{
 	{
 		Name: "local",
 		Help: "play a game localy against friends.",
 		Run:  local.LocalRun,
+		Opts: []cli.Mode{
+			{
+				Name: "-b",
+				Help: "Play against bots from the `bots` directory",
+			},
+		},
 	},
 	{
 		Name: "server",
@@ -26,5 +32,5 @@ var modes = []cli.Mode{
 }
 
 func main() {
-	cli.CliRun(&modes)
+	cli.CliRun(&commands)
 }

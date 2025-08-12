@@ -6,7 +6,6 @@ import (
 	"log"
 	"net"
 
-	"github.com/zeb33n/farkle2/cli"
 	"github.com/zeb33n/farkle2/core"
 )
 
@@ -124,7 +123,7 @@ func playGame(c net.Conn, name string) {
 	}
 }
 
-func ClientRun(_ *[]cli.Mode) {
+func ClientRun(_ *map[string]bool) {
 	core.TuiInit()
 	defer core.TuiClose()
 	// TODO need to get list of players from server on start

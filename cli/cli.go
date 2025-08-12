@@ -5,61 +5,74 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"slices"
 )
 
 type Mode struct {
 	Name string
 	Help string
-	Run  func(*[]Mode)
-	Opts *[]Mode
+	Run  func(*map[string]bool)
+	Opts []Mode
 }
 
-var MODES []Mode
-
-var CLI Mode = Mode{
-	Name: "Farkle [::]\n",
-	Help: `A multiplayer Dice game!
-
-USAGE: farkle2 [command] [options]
-
-COMMANDS:`,
-	Opts: &MODES,
-}
-
-// can tidy this up with an interface
 func help(m *Mode) {
-	fmt.Printf("%s\n%s\n", m.Name, m.Help)
+	fmt.Printf("NAME: %s\nINFO: %s\n", m.Name, m.Help)
+	fmt.Print("OPTIONS:")
 	if m.Opts == nil {
-		return
-	}
-	for _, f := range *m.Opts {
-		fmt.Printf("    %s: %s\n", f.Name, f.Help)
+		fmt.Println(" none")
+	} else {
+		for _, f := range m.Opts {
+			fmt.Printf("\n    %s: %s", f.Name, f.Help)
+		}
+		fmt.Println()
 	}
 	fmt.Println()
 }
 
 func CliRun(modes *[]Mode) {
-	MODES = append(MODES, *modes...)
+	cliMode := Mode{
+		Name: "Farkle [::]",
+		Help: `A multiplayer Dice game!
+USAGE: farkle2 [command] [options]`,
+		Opts: *modes,
+	}
+
 	args := os.Args[1:]
 	if len(args) < 1 {
-		help(&CLI)
+		help(&cliMode)
 		log.Fatal("NO COMMAND PROVIDED.")
 	}
 	modeName := args[0]
-	for _, mode := range MODES {
+	for _, mode := range *modes {
 		if mode.Name == modeName {
-			if args[1] == "--help" {
+			if slices.Contains(args, "--help") {
 				help(&mode)
 				return
 			}
-			if len(args) > len(*mode.Opts)-1 {
+			if len(args) > 1 {
+				names := []string{}
+				for _, opt := range mode.Opts {
+					names = append(names, opt.Name)
+				}
+				for _, arg := range args[1:] {
+					if !slices.Contains(names, arg) {
+						help(&mode)
+						log.Fatalf("UNKNOWN FLAG %q", arg)
+					}
+				}
+			}
+			if len(args)-1 > len(mode.Opts) {
 				help(&mode)
 				log.Fatal("TOO MANY ARGUMENTS PROVIDED.")
 			}
-			mode.Run(mode.Opts)
+			flags := map[string]bool{}
+			for _, opt := range mode.Opts {
+				flags[opt.Name] = slices.Contains(args, opt.Name)
+			}
+			mode.Run(&flags)
 			return
 		}
 	}
-	help(&CLI)
+	help(&cliMode)
 	log.Fatalf("UNRECOGNISED MODE: %s\n", modeName)
 }
