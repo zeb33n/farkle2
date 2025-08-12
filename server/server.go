@@ -7,6 +7,7 @@ import (
 	"log"
 	"net"
 
+	"github.com/zeb33n/farkle2/cli"
 	"github.com/zeb33n/farkle2/core"
 )
 
@@ -119,7 +120,7 @@ func marshallOuput(msg core.MsgTypeS, content any) []byte {
 	return bytes
 }
 
-func ServerRun() {
+func ServerRun(_ *[]cli.Mode) {
 	l, err := net.Listen("unix", "/tmp/echo.sock")
 	if err != nil {
 		log.Fatal("listen error:", err)

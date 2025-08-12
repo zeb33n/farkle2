@@ -2,6 +2,7 @@
 package local
 
 import (
+	"github.com/zeb33n/farkle2/cli"
 	"github.com/zeb33n/farkle2/core"
 )
 
@@ -40,7 +41,7 @@ func (*ioLocal) OutputWelcome(names *map[string]bool) {
 	core.TuiRenderWelcomeLocal(players)
 }
 
-func LocalRun() {
+func LocalRun(_ *[]cli.Mode) {
 	ioHandler := ioLocal{}
 	core.TuiInit()
 
