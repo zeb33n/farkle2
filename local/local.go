@@ -40,10 +40,12 @@ func (*ioLocal) OutputWelcome(names *map[string]bool) {
 	core.TuiRenderWelcomeLocal(players)
 }
 
+// TODO if the bot flag is set load bots
+// TODO seperate IO struct for bots vs players
+
 func LocalRun(flags *map[string]bool) {
 	ioHandler := ioLocal{}
 	core.TuiInit()
-
 	splayers := map[string]bool{}
 	name := ""
 	for {
