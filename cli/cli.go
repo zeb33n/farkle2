@@ -44,34 +44,35 @@ USAGE: farkle2 [command] [options]`,
 	}
 	modeName := args[0]
 	for _, mode := range *modes {
-		if mode.Name == modeName {
-			if slices.Contains(args, "--help") {
-				help(&mode)
-				return
-			}
-			if len(args) > 1 {
-				names := []string{}
-				for _, opt := range mode.Opts {
-					names = append(names, opt.Name)
-				}
-				for _, arg := range args[1:] {
-					if !slices.Contains(names, arg) {
-						help(&mode)
-						log.Fatalf("UNKNOWN FLAG %q", arg)
-					}
-				}
-			}
-			if len(args)-1 > len(mode.Opts) {
-				help(&mode)
-				log.Fatal("TOO MANY ARGUMENTS PROVIDED.")
-			}
-			flags := map[string]bool{}
-			for _, opt := range mode.Opts {
-				flags[opt.Name] = slices.Contains(args, opt.Name)
-			}
-			mode.Run(&flags)
+		if mode.Name != modeName {
+			continue
+		}
+		if slices.Contains(args, "--help") {
+			help(&mode)
 			return
 		}
+		if len(args) > 1 {
+			names := []string{}
+			for _, opt := range mode.Opts {
+				names = append(names, opt.Name)
+			}
+			for _, arg := range args[1:] {
+				if !slices.Contains(names, arg) {
+					help(&mode)
+					log.Fatalf("UNKNOWN FLAG %q", arg)
+				}
+			}
+		}
+		if len(args)-1 > len(mode.Opts) {
+			help(&mode)
+			log.Fatal("TOO MANY ARGUMENTS PROVIDED.")
+		}
+		flags := map[string]bool{}
+		for _, opt := range mode.Opts {
+			flags[opt.Name] = slices.Contains(args, opt.Name)
+		}
+		mode.Run(&flags)
+		return
 	}
 	help(&cliMode)
 	log.Fatalf("UNRECOGNISED MODE: %s\n", modeName)

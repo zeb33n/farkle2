@@ -88,9 +88,6 @@ func (io *ioServer) serverWelcome() {
 		case core.NAME:
 			players[input.PlayerName] = false
 		}
-		for k, v := range players {
-			fmt.Printf("%s: %v\n", k, v)
-		}
 		if allTrue(&players) {
 			break
 		}

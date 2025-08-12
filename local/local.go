@@ -40,7 +40,7 @@ func (*ioLocal) OutputWelcome(names *map[string]bool) {
 	core.TuiRenderWelcomeLocal(players)
 }
 
-func LocalRun(_ *map[string]bool) {
+func LocalRun(flags *map[string]bool) {
 	ioHandler := ioLocal{}
 	core.TuiInit()
 
