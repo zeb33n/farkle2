@@ -2,10 +2,15 @@
 package local
 
 import (
+	"slices"
+	"time"
+
 	"github.com/zeb33n/farkle2/core"
 )
 
-type ioLocal struct{}
+type ioLocal struct {
+	bots []string
+}
 
 func (*ioLocal) AwaitInput() core.Input {
 	for {
@@ -20,8 +25,13 @@ func (*ioLocal) AwaitInput() core.Input {
 	}
 }
 
-func (io *ioLocal) AwaitInputPlayer(_ string) core.MsgTypeC {
-	return io.AwaitInput().Msg
+func (io *ioLocal) AwaitInputPlayer(name string, gs *core.GameState) core.MsgTypeC {
+	if slices.Contains(io.bots, name) {
+		time.Sleep(time.Second / 2)
+		return core.BotGetResponse(name, gs)
+	} else {
+		return io.AwaitInput().Msg
+	}
 }
 
 func (*ioLocal) OutputGamestate(gs *core.GameState) {
@@ -41,12 +51,15 @@ func (*ioLocal) OutputWelcome(names *map[string]bool) {
 }
 
 // TODO if the bot flag is set load bots
-// TODO seperate IO struct for bots vs players
 
 func LocalRun(flags *map[string]bool) {
-	ioHandler := ioLocal{}
-	core.TuiInit()
+	ioHandler := ioLocal{bots: []string{}}
 	splayers := map[string]bool{}
+	if (*flags)["-b"] {
+		ioHandler = ioLocal{bots: []string{"python_example"}}
+		splayers = map[string]bool{"python_example": true}
+	}
+	core.TuiInit()
 	name := ""
 	for {
 		ioHandler.OutputWelcome(&splayers)
@@ -64,7 +77,7 @@ func LocalRun(flags *map[string]bool) {
 		splayers[name] = true
 		name = ""
 	}
-	game := core.Game{IO: &ioLocal{}}
+	game := core.Game{IO: &ioHandler}
 	game.RunGame(&splayers, 10000)
 	core.TuiClose()
 }

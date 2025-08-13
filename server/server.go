@@ -28,7 +28,7 @@ func (io *ioServer) AwaitInput() core.Input {
 	panic("Channel Closed before input received")
 }
 
-func (io *ioServer) AwaitInputPlayer(player string) core.MsgTypeC {
+func (io *ioServer) AwaitInputPlayer(player string, _ *core.GameState) core.MsgTypeC {
 	for {
 		input := io.AwaitInput()
 		if input.PlayerName != player {

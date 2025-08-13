@@ -7,7 +7,7 @@ import (
 
 type inputOutput interface {
 	AwaitInput() Input
-	AwaitInputPlayer(string) MsgTypeC
+	AwaitInputPlayer(string, *GameState) MsgTypeC
 	OutputGamestate(*GameState)
 	OutputTurnChange(*GameState)
 	OutputWelcome(*map[string]bool)
