@@ -52,12 +52,18 @@ func (*ioLocal) OutputWelcome(names *map[string]bool) {
 
 // TODO if the bot flag is set load bots
 
-func LocalRun(flags *map[string]bool) {
+func LocalRun(flags *map[string]any) {
+	// get the config
+	var config core.Config
+	config.LoadConfig("config.json")
+
 	ioHandler := ioLocal{bots: []string{}}
 	splayers := map[string]bool{}
-	if (*flags)["-b"] {
-		ioHandler = ioLocal{bots: []string{"python_example"}}
-		splayers = map[string]bool{"python_example": true}
+	if b, ok := (*flags)["-b"].(bool); b && ok {
+		ioHandler = ioLocal{bots: config.Bots}
+		for _, botName := range config.Bots {
+			splayers[botName] = true
+		}
 	}
 	core.TuiInit()
 	name := ""
@@ -78,6 +84,6 @@ func LocalRun(flags *map[string]bool) {
 		name = ""
 	}
 	game := core.Game{IO: &ioHandler}
-	game.RunGame(&splayers, 10000)
+	game.RunGame(&splayers, config.FinalScore)
 	core.TuiClose()
 }

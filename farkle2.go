@@ -7,30 +7,37 @@ import (
 	"github.com/zeb33n/farkle2/server"
 )
 
-var commands = []cli.Mode{
-	{
-		Name: "local",
-		Help: "play a game localy against friends.",
-		Run:  local.LocalRun,
-		Opts: []cli.Mode{
-			{
-				Name: "-b",
-				Help: "Play against bots from the `bots` directory",
-			},
-		},
-	},
-	{
-		Name: "server",
-		Help: "start a game server",
-		Run:  server.ServerRun,
-	},
-	{
-		Name: "client",
-		Help: "connect to the server over a unix socket",
-		Run:  client.ClientRun,
-	},
-}
-
 func main() {
-	cli.CliRun(&commands)
+	// flags
+	var botFlag cli.Flag
+	botFlag.Name = "-b"
+	botFlag.Help = "Play against bots from the `bots` directory"
+	botFlag.Kind = cli.BOOL
+	botFlag.Default = false
+
+	// commands
+	var localCmd cli.Command
+	localCmd.Name = "local"
+	localCmd.Help = "play a game localy against friends."
+	localCmd.Run = local.LocalRun
+	localCmd.Options = &[]cli.Option{&botFlag}
+
+	var serverCmd cli.Command
+	serverCmd.Name = "server"
+	serverCmd.Help = "start a game server"
+	serverCmd.Run = server.ServerRun
+
+	var clientCmd cli.Command
+	clientCmd.Name = "client"
+	clientCmd.Help = "connect to the server over a unix socket"
+	clientCmd.Run = client.ClientRun
+
+	// app
+	var app cli.App
+	app.Name = "Farkle [::]"
+	app.Help = `A multiplayer Dice game!
+USAGE: farkle2 [command] [options]`
+	app.Options = &[]cli.Option{&localCmd, &serverCmd, &clientCmd}
+
+	cli.CliRun(&app)
 }

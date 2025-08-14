@@ -5,75 +5,122 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"slices"
 )
 
-type Mode struct {
-	Name string
-	Help string
-	Run  func(*map[string]bool)
-	Opts []Mode
+type Option interface {
+	getName() string
+	getHelp() string
+	getOptions() *[]Option
 }
 
-func help(m *Mode) {
-	fmt.Printf("NAME: %s\nINFO: %s\n", m.Name, m.Help)
+type Info struct {
+	Name    string
+	Help    string
+	Options *[]Option
+}
+
+func (i *Info) getName() string       { return i.Name }
+func (i *Info) getHelp() string       { return i.Help }
+func (i *Info) getOptions() *[]Option { return i.Options }
+
+type App struct {
+	Info
+}
+
+// TODO handle flags better than map string any
+
+type Command struct {
+	Info
+	Run func(*map[string]any)
+}
+
+type Flag struct {
+	Info
+	Kind    FlagKind
+	Default any
+}
+
+type FlagKind int
+
+const (
+	STRING FlagKind = iota
+	BOOL
+)
+
+func help(o Option) {
+	fmt.Printf("NAME: %s\nINFO: %s\n", o.getName(), o.getHelp())
 	fmt.Print("OPTIONS:")
-	if m.Opts == nil {
+	if o.getOptions() == nil {
 		fmt.Println(" none")
 	} else {
-		for _, f := range m.Opts {
-			fmt.Printf("\n    %s: %s", f.Name, f.Help)
+		for _, f := range *o.getOptions() {
+			fmt.Printf("\n    %s: %s", f.getName(), f.getHelp())
 		}
 		fmt.Println()
 	}
 	fmt.Println()
 }
 
-func CliRun(modes *[]Mode) {
-	cliMode := Mode{
-		Name: "Farkle [::]",
-		Help: `A multiplayer Dice game!
-USAGE: farkle2 [command] [options]`,
-		Opts: *modes,
+func checkOption(name string, opts *[]Option) Option {
+	if opts == nil {
+		return nil
 	}
+	for _, o := range *opts {
+		if o.getName() == name {
+			return o
+		}
+	}
+	return nil
+}
 
-	args := os.Args[1:]
-	if len(args) < 1 {
-		help(&cliMode)
-		log.Fatal("NO COMMAND PROVIDED.")
+func getFlagMap(opts *[]Option) map[string]any {
+	flags := map[string]any{}
+	if opts == nil {
+		return nil
 	}
-	modeName := args[0]
-	for _, mode := range *modes {
-		if mode.Name != modeName {
-			continue
+	for _, o := range *opts {
+		f, ok := o.(*Flag)
+		if !ok {
+			log.Fatal("THATS NOT A FLAG")
 		}
-		if slices.Contains(args, "--help") {
-			help(&mode)
-			return
-		}
-		if len(args) > 1 {
-			names := []string{}
-			for _, opt := range mode.Opts {
-				names = append(names, opt.Name)
-			}
-			for _, arg := range args[1:] {
-				if !slices.Contains(names, arg) {
-					help(&mode)
-					log.Fatalf("UNKNOWN FLAG %q", arg)
-				}
-			}
-		}
-		if len(args)-1 > len(mode.Opts) {
-			help(&mode)
-			log.Fatal("TOO MANY ARGUMENTS PROVIDED.")
-		}
-		flags := map[string]bool{}
-		for _, opt := range mode.Opts {
-			flags[opt.Name] = slices.Contains(args, opt.Name)
-		}
-		mode.Run(&flags)
+		flags[f.Name] = f.Default
+	}
+	return flags
+}
+
+func CliRun(app *App) {
+	var helpCmd Command
+	helpCmd.Name = "help"
+	helpCmd.Help = "display help message"
+	helpCmd.Run = func(_ *map[string]any) { help(app) }
+	fullOptions := append(*app.getOptions(), &helpCmd)
+	app.Options = &fullOptions
+	if len(os.Args) == 1 {
+		help(app)
 		return
 	}
-	help(&cliMode)
-	log.Fatalf("UNRECOGNISED MODE: %s\n", modeName)
+	args := os.Args[1:]
+	cmd, ok := checkOption(args[0], app.getOptions()).(*Command)
+	if cmd == nil || !ok {
+		help(app)
+		log.Fatalf("UNKNOWN COMMAND %s", args[0])
+	}
+	flags := getFlagMap(cmd.getOptions())
+	i := 1
+	for i <= len(args[1:]) {
+		flag, ok := checkOption(args[i], cmd.getOptions()).(*Flag)
+		if flag == nil || !ok {
+			help(cmd)
+			log.Fatalf("UNKNOWN FLAG %s FOR %s", args[i], cmd.getName())
+		}
+		switch flag.Kind {
+		case BOOL:
+			flags[flag.Name] = true
+		case STRING:
+			i++
+			flags[flag.Name] = args[i]
+		}
+		i++
+	}
+	cmd.Run(&flags)
 }
