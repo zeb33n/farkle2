@@ -97,7 +97,7 @@ func CliRun(app *App) {
 	app.Options = &fullOptions
 	if len(os.Args) == 1 {
 		help(app)
-		return
+		log.Fatalf("NO COMMAND PROVIDED")
 	}
 	args := os.Args[1:]
 	cmd, ok := checkOption(args[0], app.getOptions()).(*Command)
