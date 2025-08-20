@@ -55,7 +55,11 @@ func (*ioLocal) OutputWelcome(names *map[string]bool) {
 func LocalRun(flags *map[string]any) {
 	// get the config
 	var config core.Config
-	config.LoadConfig("config.json")
+	if cf, ok := (*flags)["-c"].(string); cf != "" && ok {
+		config.LoadConfig(cf)
+	} else {
+		config.LoadConfig("config.json")
+	}
 
 	ioHandler := ioLocal{bots: []string{}}
 	splayers := map[string]bool{}

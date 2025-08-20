@@ -28,6 +28,7 @@ type App struct {
 }
 
 // TODO handle flags better than map string any
+// TODO get rid of Any types -> stop abusing generics -> This can all be checked at comp time
 
 type Command struct {
 	Info

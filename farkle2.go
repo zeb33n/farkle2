@@ -15,12 +15,18 @@ func main() {
 	botFlag.Kind = cli.BOOL
 	botFlag.Default = false
 
+	var confFlag cli.Flag
+	confFlag.Name = "-c"
+	confFlag.Help = "load a config file"
+	confFlag.Kind = cli.STRING
+	confFlag.Default = ""
+
 	// commands
 	var localCmd cli.Command
 	localCmd.Name = "local"
 	localCmd.Help = "play a game localy against friends."
 	localCmd.Run = local.LocalRun
-	localCmd.Options = &[]cli.Option{&botFlag}
+	localCmd.Options = &[]cli.Option{&botFlag, &confFlag}
 
 	var serverCmd cli.Command
 	serverCmd.Name = "server"
