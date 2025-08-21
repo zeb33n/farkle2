@@ -123,7 +123,7 @@ func playGame(c net.Conn, name string) {
 	}
 }
 
-func ClientRun(_ *map[string]any) {
+func ClientRun() {
 	core.TuiInit()
 	defer core.TuiClose()
 	// TODO need to get list of players from server on start

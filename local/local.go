@@ -50,20 +50,23 @@ func (*ioLocal) OutputWelcome(names *map[string]bool) {
 	core.TuiRenderWelcomeLocal(players)
 }
 
-// TODO if the bot flag is set load bots
+type LocalOptions struct {
+	Bots   bool
+	Config string
+}
 
-func LocalRun(flags *map[string]any) {
-	// get the config
+var LOCALOPTIONS = LocalOptions{
+	Bots:   false,
+	Config: "config.json",
+}
+
+func LocalRun() {
 	var config core.Config
-	if cf, ok := (*flags)["-c"].(string); cf != "" && ok {
-		config.LoadConfig(cf)
-	} else {
-		config.LoadConfig("config.json")
-	}
+	config.LoadConfig(LOCALOPTIONS.Config)
 
 	ioHandler := ioLocal{bots: []string{}}
 	splayers := map[string]bool{}
-	if b, ok := (*flags)["-b"].(bool); b && ok {
+	if LOCALOPTIONS.Bots {
 		ioHandler = ioLocal{bots: config.Bots}
 		for _, botName := range config.Bots {
 			splayers[botName] = true

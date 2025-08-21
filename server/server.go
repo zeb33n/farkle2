@@ -116,7 +116,7 @@ func marshallOuput(msg core.MsgTypeS, content any) []byte {
 	return bytes
 }
 
-func ServerRun(_ *map[string]any) {
+func ServerRun() {
 	l, err := net.Listen("unix", "/tmp/echo.sock")
 	if err != nil {
 		log.Fatal("listen error:", err)
