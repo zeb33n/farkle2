@@ -2,7 +2,8 @@
   "FinalScore": 1000,
   "TourType": 1,
   "Bots": [
-    "python_example"
+    "python_example",
+    "python_example_2"
   ]
 }
   

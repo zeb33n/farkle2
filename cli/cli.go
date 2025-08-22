@@ -64,27 +64,23 @@ type Flag interface {
 	getKind() flagKind
 }
 
-type absFlag struct {
-	Info
-}
-
-func (f *absFlag) getOptions() []Option { return []Option{f} }
-
 type FlagBool struct {
-	absFlag
+	Info
 	Value *bool
 }
 
-func (f *FlagBool) parse(s string)    { *f.Value = true }
-func (f *FlagBool) getKind() flagKind { return BOOL }
+func (f *FlagBool) parse(s string)       { *f.Value = true }
+func (f *FlagBool) getKind() flagKind    { return BOOL }
+func (f *FlagBool) getOptions() []Option { return []Option{f} }
 
 type FlagString struct {
-	absFlag
+	Info
 	Value *string
 }
 
-func (f *FlagString) parse(s string)    { *f.Value = s }
-func (f *FlagString) getKind() flagKind { return STRING }
+func (f *FlagString) parse(s string)       { *f.Value = s }
+func (f *FlagString) getKind() flagKind    { return STRING }
+func (f *FlagString) getOptions() []Option { return []Option{f} }
 
 func help(o Option) {
 	fmt.Printf("NAME: %s\nINFO: %s\n", o.getName(), o.getHelp())

@@ -5,6 +5,7 @@ import (
 	"github.com/zeb33n/farkle2/client"
 	"github.com/zeb33n/farkle2/local"
 	"github.com/zeb33n/farkle2/server"
+	"github.com/zeb33n/farkle2/tournament"
 )
 
 func main() {
@@ -31,6 +32,11 @@ func main() {
 	serverCmd.Help = "start a game server"
 	serverCmd.Run = server.ServerRun
 
+	var tournamentCmd cli.Command
+	tournamentCmd.Name = "tournament"
+	tournamentCmd.Help = "start a game tournament"
+	tournamentCmd.Run = tournament.TournamentRun
+
 	var clientCmd cli.Command
 	clientCmd.Name = "client"
 	clientCmd.Help = "connect to the server over a unix socket"
@@ -41,7 +47,7 @@ func main() {
 	app.Name = "Farkle [::]"
 	app.Help = `A multiplayer Dice game!
 USAGE: farkle2 [command] [options]`
-	app.Commands = &[]cli.Command{localCmd, serverCmd, clientCmd}
+	app.Commands = &[]cli.Command{localCmd, serverCmd, clientCmd, tournamentCmd}
 
 	cli.CliRun(&app)
 }
