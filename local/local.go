@@ -2,14 +2,13 @@
 package local
 
 import (
-	"slices"
 	"time"
 
 	"github.com/zeb33n/farkle2/core"
 )
 
 type ioLocal struct {
-	bots []string
+	bots map[string]*core.BotHandler
 }
 
 func (*ioLocal) AwaitInput() core.Input {
@@ -26,9 +25,9 @@ func (*ioLocal) AwaitInput() core.Input {
 }
 
 func (io *ioLocal) AwaitInputPlayer(name string, gs *core.GameState) core.MsgTypeC {
-	if slices.Contains(io.bots, name) {
-		time.Sleep(time.Second / 2)
-		return core.BotGetResponse(name, gs)
+	if _, ok := io.bots[name]; ok {
+		time.Sleep(time.Second)
+		return io.bots[name].GetResponse(gs)
 	} else {
 		return io.AwaitInput().Msg
 	}
@@ -50,6 +49,26 @@ func (*ioLocal) OutputWelcome(names *map[string]bool) {
 	core.TuiRenderWelcomeLocal(players)
 }
 
+func (io *ioLocal) AwaitPlayers(names *map[string]bool) {
+	name := ""
+	for {
+		io.OutputWelcome(names)
+		var c string
+		for {
+			c = core.WaitForKeyPress(true)
+			if c == "\n" || c == "." {
+				break
+			}
+			name += c
+		}
+		if c == "." {
+			break
+		}
+		(*names)[name] = true
+		name = ""
+	}
+}
+
 type LocalOptions struct {
 	Bots   bool
 	Config string
@@ -63,33 +82,18 @@ var LOCALOPTIONS = LocalOptions{
 func LocalRun() {
 	var config core.Config
 	config.LoadConfig(LOCALOPTIONS.Config)
-
-	ioHandler := ioLocal{bots: []string{}}
+	ioHandler := ioLocal{bots: map[string]*core.BotHandler{}}
 	splayers := map[string]bool{}
 	if LOCALOPTIONS.Bots {
-		ioHandler = ioLocal{bots: config.Bots}
 		for _, botName := range config.Bots {
+			ioHandler.bots[botName] = &core.BotHandler{Name: botName}
+			ioHandler.bots[botName].Start()
+			defer ioHandler.bots[botName].Stop()
 			splayers[botName] = true
 		}
 	}
 	core.TuiInit()
-	name := ""
-	for {
-		ioHandler.OutputWelcome(&splayers)
-		var c string
-		for {
-			c = core.WaitForKeyPress(true)
-			if c == "\n" || c == "." {
-				break
-			}
-			name += c
-		}
-		if c == "." {
-			break
-		}
-		splayers[name] = true
-		name = ""
-	}
+	ioHandler.AwaitPlayers(&splayers)
 	game := core.Game{IO: &ioHandler}
 	game.RunGame(&splayers, config.FinalScore)
 	core.TuiClose()

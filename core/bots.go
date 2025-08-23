@@ -3,28 +3,77 @@ package core
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
+	"os"
 	"os/exec"
 )
 
 // TODO startng a new process each bots turn is slow. We shoud run them at the start
 
-func BotGetResponse(name string, gs *GameState) MsgTypeC {
+type BotHandler struct {
+	Name string
+	proc *exec.Cmd
+	in   io.WriteCloser
+	out  io.ReadCloser
+}
+
+func (b *BotHandler) Start() {
+	cmd := fmt.Sprintf("docker run -i --rm %s", b.Name)
+	b.proc = exec.Command("bash", "-c", cmd)
+	var err error
+	b.in, err = b.proc.StdinPipe()
+	if err != nil {
+		log.Fatal(err)
+	}
+	b.out, err = b.proc.StdoutPipe()
+	if err != nil {
+		log.Fatal(err)
+	}
+	if err := b.proc.Start(); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func (b *BotHandler) GetResponse(gs *GameState) MsgTypeC {
 	gsb, err := json.Marshal(gs)
-	cmd := fmt.Sprintf("echo '%s' | docker run -i %s", string(gsb), name)
 	if err != nil {
-		log.Fatal("Couldnt send gamestate to bot", err)
+		log.Fatal(err)
 	}
-	out, err := exec.Command("bash", "-c", cmd).Output()
+	gsb = append(gsb, '\n')
+	b.in.Write(gsb)
 	if err != nil {
-		log.Fatal("Couldnt send gamestate to bot", err)
+		log.Fatal(err)
 	}
-	switch string(out) {
+	buf := make([]byte, 1)
+	n, err := b.out.Read(buf)
+	if err != nil {
+		log.Fatal(err)
+	}
+	switch string(buf[:n]) {
 	case "b":
 		return BANK
 	case "r":
 		return ROLL
 	default:
 		return BANK
+	}
+}
+
+func (b *BotHandler) Stop() {
+	err := b.in.Close()
+	if err != nil {
+		fmt.Println(err)
+	}
+	err = b.out.Close()
+	if err != nil {
+		fmt.Println(err)
+	}
+	err = b.proc.Process.Signal(os.Interrupt)
+	if err != nil {
+		err = b.proc.Process.Kill()
+		if err != nil {
+			fmt.Printf("COULDNT STOP BOT %s", b.Name)
+		}
 	}
 }

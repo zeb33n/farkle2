@@ -7,10 +7,12 @@ import (
 	"github.com/zeb33n/farkle2/core"
 )
 
-type ioTournament struct{}
+type ioTournament struct {
+	handlers map[string]*core.BotHandler
+}
 
 func (io *ioTournament) AwaitInputPlayer(name string, gs *core.GameState) core.MsgTypeC {
-	return core.BotGetResponse(name, gs)
+	return io.handlers[name].GetResponse(gs)
 }
 
 func (io *ioTournament) OutputGamestate(gs *core.GameState) {
@@ -25,8 +27,14 @@ func (io *ioTournament) OutputTurnChange(*core.GameState) {
 func TournamentRun() {
 	var conf core.Config
 	conf.LoadConfig("config.json")
-	io := ioTournament{}
 	bots := conf.Bots
+	handlers := map[string]*core.BotHandler{}
+	for _, name := range bots {
+		handlers[name] = &core.BotHandler{Name: name}
+		handlers[name].Start()
+		defer handlers[name].Stop()
+	}
+	io := ioTournament{handlers: handlers}
 	fmt.Printf("%v\n", bots)
 	for len(bots) > 1 {
 		winners := make([]string, len(bots)/2)
