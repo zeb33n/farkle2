@@ -7,6 +7,8 @@ import (
 	"os/exec"
 )
 
+// TODO startng a new process each bots turn is slow. We shoud run them at the start
+
 func BotGetResponse(name string, gs *GameState) MsgTypeC {
 	gsb, err := json.Marshal(gs)
 	cmd := fmt.Sprintf("echo '%s' | docker run -i %s", string(gsb), name)

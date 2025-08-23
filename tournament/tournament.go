@@ -15,9 +15,12 @@ func (io *ioTournament) AwaitInputPlayer(name string, gs *core.GameState) core.M
 
 func (io *ioTournament) OutputGamestate(gs *core.GameState) {
 	// fmt.Printf("%v\n", gs)
+	// log to file for replays
 }
 
-func (io *ioTournament) OutputTurnChange(*core.GameState) {}
+func (io *ioTournament) OutputTurnChange(*core.GameState) {
+	// log to file for replays
+}
 
 func TournamentRun() {
 	var conf core.Config
