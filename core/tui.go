@@ -138,16 +138,33 @@ func TuiRenderTournament(players []string) {
 	widthName := 20
 	widthLine := len(tournamentbracket[0]) * widthName
 	out := ""
-	for _, round := range tournamentbracket {
+	for j, round := range tournamentbracket {
 		line := ""
 		for _, player := range round {
-			line += centerString(player, widthName)
-		}
-		pipe := ""
-		for i:=0 ; i < len(round) ; i +=2 {
-			pipe +=
+			player = centerString(player, widthName)
+			// Need to ignore colours!
+			// if j+1 < len(tournamentbracket) {
+			// 	if slices.Contains(tournamentbracket[j+1], player) {
+			// 		player = setStringColour(player, GREEN)
+			// 	} else {
+			// 		player = setStringColour(player, RED)
+			// 	}
+			// }
+			line += player
 		}
 		out += centerString(line, widthLine) + "\n"
+		pipe := ""
+		for i := 0; i < len(round)-1; i += 2 {
+			pipe += fmt.Sprintf(
+				"%s┗%s┳%s┛",
+				strings.Repeat(" ", widthName/2),
+				strings.Repeat("━", widthName/2-1),
+				strings.Repeat("━", widthName/2),
+			)
+		}
+		pipe += "\n"
+		pipe = strings.Repeat(" ", widthName*j/2) + pipe
+		out += pipe
 	}
 	renderString(out)
 }
