@@ -2,8 +2,6 @@
 package tournament
 
 import (
-	"fmt"
-
 	"github.com/zeb33n/farkle2/core"
 )
 
@@ -35,7 +33,8 @@ func TournamentRun() {
 		defer handlers[name].Stop()
 	}
 	io := ioTournament{handlers: handlers}
-	fmt.Printf("%v\n", bots)
+	// fmt.Printf("%v\n", bots)
+	core.TuiRenderTournament(bots)
 	for len(bots) > 1 {
 		winners := make([]string, len(bots)/2)
 		for i := 0; i < len(bots); i += 2 {
@@ -51,6 +50,7 @@ func TournamentRun() {
 			winners[i/2] = winner
 		}
 		bots = winners
-		fmt.Printf("%v\n", bots)
+		core.TuiRenderTournament(winners)
+		// fmt.Printf("%v\n", bots)
 	}
 }

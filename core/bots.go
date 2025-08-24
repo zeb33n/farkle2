@@ -9,8 +9,6 @@ import (
 	"os/exec"
 )
 
-// TODO startng a new process each bots turn is slow. We shoud run them at the start
-
 type BotHandler struct {
 	Name string
 	proc *exec.Cmd

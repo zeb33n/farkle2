@@ -10,7 +10,10 @@ import (
 	"strings"
 )
 
-var lenLastRender int = 0
+var (
+	lenLastRender     int        = 0
+	tournamentbracket [][]string = [][]string{}
+)
 
 type colourKind int
 
@@ -40,6 +43,10 @@ var COLOURS = map[colourKind]string{
 
 func setStringColour(s string, colour colourKind) string {
 	return COLOURS[colour] + s + COLOURS[RESET]
+}
+
+func centerString(s string, w int) string {
+	return fmt.Sprintf("%*s", -w, fmt.Sprintf("%*s", (w+len(s))/2, s))
 }
 
 func TuiRenderGamestate(gamestate *GameState) {
@@ -126,6 +133,25 @@ EnterName:
 	renderString(welcomeString)
 }
 
+func TuiRenderTournament(players []string) {
+	tournamentbracket = append(tournamentbracket, players)
+	widthName := 20
+	widthLine := len(tournamentbracket[0]) * widthName
+	out := ""
+	for _, round := range tournamentbracket {
+		line := ""
+		for _, player := range round {
+			line += centerString(player, widthName)
+		}
+		pipe := ""
+		for i:=0 ; i < len(round) ; i +=2 {
+			pipe +=
+		}
+		out += centerString(line, widthLine) + "\n"
+	}
+	renderString(out)
+}
+
 func renderString(s string) {
 	for i := 0; i < lenLastRender; i++ {
 		fmt.Printf("\033[1A\033[2K")
@@ -139,7 +165,7 @@ func handleSigInt() {
 	signal.Notify(c, os.Interrupt)
 	go func() {
 		for range c {
-			exec.Command("stty", "-F", "/dev/tty", "echo").Run()
+			TuiClose()
 			os.Exit(1)
 		}
 	}()
