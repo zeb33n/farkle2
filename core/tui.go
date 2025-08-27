@@ -136,7 +136,14 @@ EnterName:
 
 func TuiRenderTournament(players []string) {
 	tournamentbracket = append(tournamentbracket, players)
-	width := len(tournamentbracket[0]) * 20
+	// get max len
+	lenMax := 0
+	for _, player := range tournamentbracket[0] {
+		if l := utf8.RuneCountInString(player); l > lenMax {
+			lenMax = l
+		}
+	}
+	width := len(tournamentbracket[0]) * lenMax
 	out := ""
 	for _, round := range tournamentbracket {
 		line := ""
