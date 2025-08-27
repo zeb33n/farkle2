@@ -8,6 +8,7 @@ import (
 	"os/signal"
 	"slices"
 	"strings"
+	"unicode/utf8"
 )
 
 var (
@@ -46,7 +47,7 @@ func setStringColour(s string, colour colourKind) string {
 }
 
 func centerString(s string, w int) string {
-	return fmt.Sprintf("%*s", -w, fmt.Sprintf("%*s", (w+len(s))/2, s))
+	return fmt.Sprintf("%*s", -w, fmt.Sprintf("%*s", (w+utf8.RuneCountInString(s))/2, s))
 }
 
 func TuiRenderGamestate(gamestate *GameState) {
@@ -135,36 +136,26 @@ EnterName:
 
 func TuiRenderTournament(players []string) {
 	tournamentbracket = append(tournamentbracket, players)
-	widthName := 20
-	widthLine := len(tournamentbracket[0]) * widthName
+	width := len(tournamentbracket[0]) * 20
 	out := ""
-	for j, round := range tournamentbracket {
+	for _, round := range tournamentbracket {
 		line := ""
 		for _, player := range round {
-			player = centerString(player, widthName)
-			// Need to ignore colours!
-			// if j+1 < len(tournamentbracket) {
-			// 	if slices.Contains(tournamentbracket[j+1], player) {
-			// 		player = setStringColour(player, GREEN)
-			// 	} else {
-			// 		player = setStringColour(player, RED)
-			// 	}
-			// }
+			player = centerString(player, width/len(round))
+			// TODO colour the strings
 			line += player
 		}
-		out += centerString(line, widthLine) + "\n"
+		out += centerString(line, width) + "\n"
 		pipe := ""
 		for i := 0; i < len(round)-1; i += 2 {
-			pipe += fmt.Sprintf(
-				"%s┗%s┳%s┛",
-				strings.Repeat(" ", widthName/2),
-				strings.Repeat("━", widthName/2-1),
-				strings.Repeat("━", widthName/2),
+			p := fmt.Sprintf(
+				"┗%s┳%s┛",
+				strings.Repeat("━", width/(len(round)*2)-1),
+				strings.Repeat("━", width/(len(round)*2)-1),
 			)
+			pipe += centerString(p, (width/len(round))*2)
 		}
-		pipe += "\n"
-		pipe = strings.Repeat(" ", widthName*j/2) + pipe
-		out += pipe
+		out += centerString(pipe, width) + "\n"
 	}
 	renderString(out)
 }
