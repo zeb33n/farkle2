@@ -50,6 +50,14 @@ func centerString(s string, w int) string {
 	return fmt.Sprintf("%*s", -w, fmt.Sprintf("%*s", (w+utf8.RuneCountInString(s))/2, s))
 }
 
+func roundToEven(i int) int {
+	if i%2 == 0 {
+		return i
+	} else {
+		return i + 1
+	}
+}
+
 func TuiRenderGamestate(gamestate *GameState) {
 	diceSides := []string{"[.]", "[:]", "[.:]", "[::]", "[:.:]", "[:::]"}
 	roll := ""
@@ -136,31 +144,44 @@ EnterName:
 
 func TuiRenderTournament(players []string) {
 	tournamentbracket = append(tournamentbracket, players)
-	// get max len
 	lenMax := 0
 	for _, player := range tournamentbracket[0] {
 		if l := utf8.RuneCountInString(player); l > lenMax {
 			lenMax = l
 		}
 	}
-	width := len(tournamentbracket[0]) * lenMax
+	width := roundToEven(len(tournamentbracket[0])) * lenMax
 	out := ""
 	for _, round := range tournamentbracket {
 		line := ""
-		for _, player := range round {
-			player = centerString(player, width/len(round))
+		lenRoundEven := roundToEven(len(round))
+		for i := 0; i < len(round); i += 2 {
+			if len(round) == 1 {
+				line += centerString(round[0], width/lenRoundEven)
+			} else if len(round) != i+1 {
+				line += centerString(round[i], width/lenRoundEven)
+				line += centerString(round[i+1], width/lenRoundEven)
+			} else {
+				line += strings.Repeat(" ", (width/lenRoundEven)*2)
+			}
 			// TODO colour the strings
-			line += player
 		}
 		out += centerString(line, width) + "\n"
 		pipe := ""
-		for i := 0; i < len(round)-1; i += 2 {
-			p := fmt.Sprintf(
-				"┗%s┳%s┛",
-				strings.Repeat("━", width/(len(round)*2)-1),
-				strings.Repeat("━", width/(len(round)*2)-1),
-			)
-			pipe += centerString(p, (width/len(round))*2)
+		for i := 0; i < len(round); i += 2 {
+			p := ""
+			if len(round) == 1 {
+				break
+			} else if len(round) != i+1 {
+				p = fmt.Sprintf(
+					"┗%s┳%s┛",
+					strings.Repeat("━", width/(lenRoundEven*2)-1),
+					strings.Repeat("━", width/(lenRoundEven*2)-1),
+				)
+			} else {
+				p = strings.Repeat(" ", (width/lenRoundEven)*2)
+			}
+			pipe += centerString(p, (width/lenRoundEven)*2)
 		}
 		out += centerString(pipe, width) + "\n"
 	}

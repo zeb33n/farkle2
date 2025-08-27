@@ -33,7 +33,6 @@ func TournamentRun() {
 		defer handlers[name].Stop()
 	}
 	io := ioTournament{handlers: handlers}
-	// fmt.Printf("%v\n", bots)
 	core.TuiRenderTournament(bots)
 	for len(bots) > 1 {
 		winners := make([]string, len(bots)/2)

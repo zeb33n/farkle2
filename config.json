@@ -4,8 +4,8 @@
   "Bots": [
     "python_example",
     "python_example_2",
-    "rust_example",
-    "py3"
+    "py3",
+    "rust_example"
   ]
 }
   
