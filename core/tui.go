@@ -50,12 +50,17 @@ func centerString(s string, w int) string {
 	return fmt.Sprintf("%*s", -w, fmt.Sprintf("%*s", (w+utf8.RuneCountInString(s))/2, s))
 }
 
-func roundToEven(i int) int {
-	if i%2 == 0 {
-		return i
-	} else {
-		return i + 1
-	}
+func nextSquare(i int) int {
+	ui := uint32(i)
+	// bit twiddling fun
+	ui--
+	ui |= ui >> 1
+	ui |= ui >> 2
+	ui |= ui >> 4
+	ui |= ui >> 8
+	ui |= ui >> 16
+	ui++
+	return int(ui)
 }
 
 func TuiRenderGamestate(gamestate *GameState) {
@@ -142,6 +147,47 @@ EnterName:
 	renderString(welcomeString)
 }
 
+// TOD) better but still looks janky for 6 players e.g maybe include byes in
+// tornament logic
+
+func writeBotNames(round []string, width int) string {
+	line := ""
+	lenRoundsquare := nextSquare(len(round))
+	for i := 0; i < lenRoundsquare; i += 2 {
+		if len(round) == 1 {
+			line += centerString(round[0], width/lenRoundsquare)
+		} else if len(round) > i+1 {
+			line += centerString(round[i], width/lenRoundsquare)
+			line += centerString(round[i+1], width/lenRoundsquare)
+		} else {
+			line += strings.Repeat(" ", (width/lenRoundsquare)*2)
+		}
+		// TODO colour the strings
+	}
+	return centerString(line, width) + "\n"
+}
+
+func writePipes(round []string, width int) string {
+	pipe := ""
+	lenRoundsquare := nextSquare(len(round))
+	for i := 0; i < lenRoundsquare; i += 2 {
+		p := ""
+		if len(round) == 1 {
+			break
+		} else if len(round) > i+1 {
+			p = fmt.Sprintf(
+				"┗%s┳%s┛",
+				strings.Repeat("━", width/(lenRoundsquare*2)-1),
+				strings.Repeat("━", width/(lenRoundsquare*2)-1),
+			)
+		} else {
+			p = strings.Repeat(" ", (width/lenRoundsquare)*2)
+		}
+		pipe += centerString(p, (width/lenRoundsquare)*2)
+	}
+	return centerString(pipe, width) + "\n"
+}
+
 func TuiRenderTournament(players []string) {
 	tournamentbracket = append(tournamentbracket, players)
 	lenMax := 0
@@ -150,40 +196,10 @@ func TuiRenderTournament(players []string) {
 			lenMax = l
 		}
 	}
-	width := roundToEven(len(tournamentbracket[0])) * lenMax
+	width := nextSquare(len(tournamentbracket[0])) * lenMax
 	out := ""
 	for _, round := range tournamentbracket {
-		line := ""
-		lenRoundEven := roundToEven(len(round))
-		for i := 0; i < len(round); i += 2 {
-			if len(round) == 1 {
-				line += centerString(round[0], width/lenRoundEven)
-			} else if len(round) != i+1 {
-				line += centerString(round[i], width/lenRoundEven)
-				line += centerString(round[i+1], width/lenRoundEven)
-			} else {
-				line += strings.Repeat(" ", (width/lenRoundEven)*2)
-			}
-			// TODO colour the strings
-		}
-		out += centerString(line, width) + "\n"
-		pipe := ""
-		for i := 0; i < len(round); i += 2 {
-			p := ""
-			if len(round) == 1 {
-				break
-			} else if len(round) != i+1 {
-				p = fmt.Sprintf(
-					"┗%s┳%s┛",
-					strings.Repeat("━", width/(lenRoundEven*2)-1),
-					strings.Repeat("━", width/(lenRoundEven*2)-1),
-				)
-			} else {
-				p = strings.Repeat(" ", (width/lenRoundEven)*2)
-			}
-			pipe += centerString(p, (width/lenRoundEven)*2)
-		}
-		out += centerString(pipe, width) + "\n"
+		out += writeBotNames(round, width) + writePipes(round, width)
 	}
 	renderString(out)
 }
