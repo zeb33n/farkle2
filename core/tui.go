@@ -14,6 +14,7 @@ import (
 var (
 	lenLastRender     int        = 0
 	tournamentbracket [][]string = [][]string{}
+	bracketString     string
 )
 
 type colourKind int
@@ -31,15 +32,15 @@ const (
 )
 
 var COLOURS = map[colourKind]string{
-	RESET:   "\033[0m",
-	RED:     "\033[31m",
-	GREEN:   "\033[32m",
-	YELLOW:  "\033[33m",
-	BLUE:    "\033[34m",
-	MAGENTA: "\033[35m",
-	CYAN:    "\033[36m",
-	GRAY:    "\033[37m",
-	WHITE:   "\033[97m",
+	RESET:   "\x1b[0m",
+	RED:     "\x1b[31m",
+	GREEN:   "\x1b[32m",
+	YELLOW:  "\x1b[33m",
+	BLUE:    "\x1b[34m",
+	MAGENTA: "\x1b[35m",
+	CYAN:    "\x1b[36m",
+	GRAY:    "\x1b[37m",
+	WHITE:   "\x1b[97m",
 }
 
 func setStringColour(s string, colour colourKind) string {
@@ -47,20 +48,13 @@ func setStringColour(s string, colour colourKind) string {
 }
 
 func centerString(s string, w int) string {
-	return fmt.Sprintf("%*s", -w, fmt.Sprintf("%*s", (w+utf8.RuneCountInString(s))/2, s))
-}
-
-func nextSquare(i int) int {
-	ui := uint32(i)
-	// bit twiddling fun
-	ui--
-	ui |= ui >> 1
-	ui |= ui >> 2
-	ui |= ui >> 4
-	ui |= ui >> 8
-	ui |= ui >> 16
-	ui++
-	return int(ui)
+	sLen := strings.Clone(s)
+	for _, colour := range COLOURS {
+		sLen = strings.ReplaceAll(sLen, colour, "")
+	}
+	paddingl := strings.Repeat(" ", (w-utf8.RuneCountInString(sLen))/2)
+	paddingr := strings.Repeat(" ", (w-utf8.RuneCountInString(sLen)+1)/2)
+	return paddingl + s + paddingr
 }
 
 func TuiRenderGamestate(gamestate *GameState) {
@@ -147,49 +141,9 @@ EnterName:
 	renderString(welcomeString)
 }
 
-// TOD) better but still looks janky for 6 players e.g maybe include byes in
-// tornament logic
+// TODO refactor this janky af function
 
-func writeBotNames(round []string, width int) string {
-	line := ""
-	lenRoundsquare := nextSquare(len(round))
-	for i := 0; i < lenRoundsquare; i += 2 {
-		if len(round) == 1 {
-			line += centerString(round[0], width/lenRoundsquare)
-		} else if len(round) > i+1 {
-			line += centerString(round[i], width/lenRoundsquare)
-			line += centerString(round[i+1], width/lenRoundsquare)
-		} else {
-			line += strings.Repeat(" ", (width/lenRoundsquare)*2)
-		}
-		// TODO colour the strings
-	}
-	return centerString(line, width) + "\n"
-}
-
-func writePipes(round []string, width int) string {
-	pipe := ""
-	lenRoundsquare := nextSquare(len(round))
-	for i := 0; i < lenRoundsquare; i += 2 {
-		p := ""
-		if len(round) == 1 {
-			break
-		} else if len(round) > i+1 {
-			p = fmt.Sprintf(
-				"┗%s┳%s┛",
-				strings.Repeat("━", width/(lenRoundsquare*2)-1),
-				strings.Repeat("━", width/(lenRoundsquare*2)-1),
-			)
-		} else {
-			p = strings.Repeat(" ", (width/lenRoundsquare)*2)
-		}
-		pipe += centerString(p, (width/lenRoundsquare)*2)
-	}
-	return centerString(pipe, width) + "\n"
-}
-
-func TuiRenderTournament(players []string) {
-	tournamentbracket = append(tournamentbracket, players)
+func makeBracketString() string {
 	lenMax := 0
 	for _, player := range tournamentbracket[0] {
 		if l := utf8.RuneCountInString(player); l > lenMax {
@@ -198,10 +152,49 @@ func TuiRenderTournament(players []string) {
 	}
 	width := nextSquare(len(tournamentbracket[0])) * lenMax
 	out := ""
-	for _, round := range tournamentbracket {
-		out += writeBotNames(round, width) + writePipes(round, width)
+	for i, round := range tournamentbracket {
+		line := ""
+		// print the player names
+		for _, player := range round {
+			// set colours
+			if player == "BYE" {
+				player = setStringColour(player, BLUE)
+			} else if len(round) == 1 {
+				player = setStringColour(player, GREEN)
+			} else if i < len(tournamentbracket)-1 {
+				if slices.Contains(tournamentbracket[i+1], player) {
+					player = setStringColour(player, GREEN)
+				} else {
+					player = setStringColour(player, RED)
+				}
+			}
+			// center the strings
+			line += centerString(player, width/len(round))
+		}
+		out += line + "\n"
+		line = ""
+		// print the pipes
+		for j := 0; j < len(round)-1; j += 2 {
+			pipe := fmt.Sprintf(
+				"┗%s┳%s┛",
+				strings.Repeat("━", width/(len(round)*2)-1),
+				strings.Repeat("━", width/(len(round)*2)-1),
+			)
+			line += centerString(pipe, (width / len(round) * 2))
+		}
+		out += line + "\n"
 	}
-	renderString(out)
+	return out
+}
+
+func TuiRenderTournament(players []string, roundNum int, msg string) {
+	if roundNum > len(tournamentbracket) {
+		byes := slices.Repeat([]string{"BYE"}, nextSquare(len(players))-len(players))
+		players = append(players, byes...)
+		tournamentbracket = append(tournamentbracket, players)
+		bracketString = makeBracketString()
+	}
+	renderString(bracketString + "\n" + msg)
 }
 
 func renderString(s string) {

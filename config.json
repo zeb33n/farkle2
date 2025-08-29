@@ -1,13 +1,12 @@
 {
-  "FinalScore": 1000,
+  "FinalScore": 10000,
   "TourType": 1,
   "Bots": [
     "python_example",
     "python_example_2",
     "py3",
-    "python_example_2",
-    "py3",
     "rust_example"
-  ]
+  ],
+  "FirstTo": 50
 }
   

@@ -17,6 +17,7 @@ type Config struct {
 	FinalScore int
 	TourType   TourType
 	Bots       []string
+	FirstTo    int
 }
 
 func (c *Config) LoadConfig(file string) {
@@ -40,4 +41,17 @@ func WaitForKeyPress(verbose bool) string {
 		}
 	}
 	return s
+}
+
+func nextSquare(i int) int {
+	ui := uint32(i)
+	// bit twiddling fun
+	ui--
+	ui |= ui >> 1
+	ui |= ui >> 2
+	ui |= ui >> 4
+	ui |= ui >> 8
+	ui |= ui >> 16
+	ui++
+	return int(ui)
 }
