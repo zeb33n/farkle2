@@ -1,0 +1,8 @@
+[package]
+name = "rust_example"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+anyhow = "1.0.99"
+serde_json = "1.0.143"

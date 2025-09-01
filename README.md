@@ -5,5 +5,5 @@ A multiplayer dice game.
 - Local Play ✅
 - CLI interface defined ✅
 - Interprocess Play ✅
-- Play With Bots
+- Play With Bots ✅
 - SSH server 

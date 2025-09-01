@@ -1,0 +1,5 @@
+FROM debian
+WORKDIR /app
+COPY target/release/rust_example .
+
+CMD ["./rust_example"]

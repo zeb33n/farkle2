@@ -52,16 +52,16 @@ func (g *Game) takeTurn(gamestate *GameState) {
 	}
 }
 
-func checkForWinner(players []Player, finalscore int) bool {
+func checkForWinner(players []Player, finalscore int) string {
 	for _, player := range players {
 		if player.Score >= finalscore {
-			return false
+			return player.Name
 		}
 	}
-	return true
+	return ""
 }
 
-func (g *Game) RunGame(splayers *map[string]bool, finalscore int) {
+func (g *Game) RunGame(splayers *map[string]bool, finalscore int) string {
 	players := []Player{}
 	for k := range *splayers {
 		players = append(players, Player{Name: k, Score: 0})
@@ -75,8 +75,12 @@ func (g *Game) RunGame(splayers *map[string]bool, finalscore int) {
 		Players:       players,
 	}
 	g.IO.OutputTurnChange(gamestate)
-	for checkForWinner(gamestate.Players, finalscore) {
-		msg := g.IO.AwaitInputPlayer(gamestate.Players[gamestate.CurrentPlayer].Name)
+	winner := ""
+	for ; winner == ""; winner = checkForWinner(gamestate.Players, finalscore) {
+		msg := g.IO.AwaitInputPlayer(
+			gamestate.Players[gamestate.CurrentPlayer].Name,
+			gamestate,
+		)
 		switch msg {
 		case ROLL:
 			g.takeTurn(gamestate)
@@ -86,5 +90,5 @@ func (g *Game) RunGame(splayers *map[string]bool, finalscore int) {
 			g.takeTurn(gamestate)
 		}
 	}
-	println("WINNER!")
+	return winner
 }

@@ -2,10 +2,14 @@
 package local
 
 import (
+	"time"
+
 	"github.com/zeb33n/farkle2/core"
 )
 
-type ioLocal struct{}
+type ioLocal struct {
+	bots map[string]*core.BotHandler
+}
 
 func (*ioLocal) AwaitInput() core.Input {
 	for {
@@ -20,8 +24,13 @@ func (*ioLocal) AwaitInput() core.Input {
 	}
 }
 
-func (io *ioLocal) AwaitInputPlayer(_ string) core.MsgTypeC {
-	return io.AwaitInput().Msg
+func (io *ioLocal) AwaitInputPlayer(name string, gs *core.GameState) core.MsgTypeC {
+	if _, ok := io.bots[name]; ok {
+		time.Sleep(time.Second)
+		return io.bots[name].GetResponse(gs)
+	} else {
+		return io.AwaitInput().Msg
+	}
 }
 
 func (*ioLocal) OutputGamestate(gs *core.GameState) {
@@ -40,14 +49,10 @@ func (*ioLocal) OutputWelcome(names *map[string]bool) {
 	core.TuiRenderWelcomeLocal(players)
 }
 
-func LocalRun() {
-	ioHandler := ioLocal{}
-	core.TuiInit()
-
-	splayers := map[string]bool{}
+func (io *ioLocal) AwaitPlayers(names *map[string]bool) {
 	name := ""
 	for {
-		ioHandler.OutputWelcome(&splayers)
+		io.OutputWelcome(names)
 		var c string
 		for {
 			c = core.WaitForKeyPress(true)
@@ -59,10 +64,37 @@ func LocalRun() {
 		if c == "." {
 			break
 		}
-		splayers[name] = true
+		(*names)[name] = true
 		name = ""
 	}
-	game := core.Game{IO: &ioLocal{}}
-	game.RunGame(&splayers, 10000)
+}
+
+type LocalOptions struct {
+	Bots   bool
+	Config string
+}
+
+var LOCALOPTIONS = LocalOptions{
+	Bots:   false,
+	Config: "config.json",
+}
+
+func LocalRun() {
+	var config core.Config
+	config.LoadConfig(LOCALOPTIONS.Config)
+	ioHandler := ioLocal{bots: map[string]*core.BotHandler{}}
+	splayers := map[string]bool{}
+	if LOCALOPTIONS.Bots {
+		for _, botName := range config.Bots {
+			ioHandler.bots[botName] = &core.BotHandler{Name: botName}
+			ioHandler.bots[botName].Start()
+			defer ioHandler.bots[botName].Stop()
+			splayers[botName] = true
+		}
+	}
+	core.TuiInit()
+	ioHandler.AwaitPlayers(&splayers)
+	game := core.Game{IO: &ioHandler}
+	game.RunGame(&splayers, config.FinalScore)
 	core.TuiClose()
 }
