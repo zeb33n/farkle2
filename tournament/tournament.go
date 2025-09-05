@@ -2,10 +2,20 @@
 package tournament
 
 import (
+	// "encoding/json"
 	"fmt"
+	"log"
+	// "log"
+	// "os"
 
 	"github.com/zeb33n/farkle2/core"
 )
+
+type LocalOptions struct {
+	Bots   bool
+	BestOf int
+	Score  int
+}
 
 type botStats struct {
 	LatestScore int
@@ -36,6 +46,17 @@ func (io *ioTournament) updateStats(gs *core.GameState) {
 	}
 }
 
+// func (io *ioTournament) WriteGame(gs *core.GameState) {
+// 	gss, err := json.Marshal(gs)
+// 	if err != nil {
+// 		log.Fatal("couldnt encode gs")
+// 	}
+// 	err = os.WriteFile(name, gss, 0o666)
+// 	if err != nil {
+// 		log.Fatal("couldnt write to file")
+// 	}
+// }
+
 func (io *ioTournament) OutputGamestate(gs *core.GameState) {
 	io.updateStats(gs)
 	// TODO log to file for replays
@@ -58,10 +79,11 @@ func getStatsString(s *botStats) string {
 // TODO bot stats struct and msg
 
 func TournamentRun() {
-	var conf core.Config
-	conf.LoadConfig("config.json")
-
-	bots := conf.Bots
+	bots := core.CONFIG.BotNames
+	fmt.Printf("%v\n", bots)
+	if len(bots) <= 1 {
+		log.Fatal("Need at least 2 bots please add some in your config file")
+	}
 	handlers := map[string]*core.BotHandler{}
 	stats := map[string]*botStats{}
 	for _, name := range bots {
@@ -87,12 +109,12 @@ func TournamentRun() {
 				continue
 			}
 			var winner string
-			for resultsRound[bots[i]] < conf.FirstTo &&
-				resultsRound[bots[i+1]] < conf.FirstTo {
+			for resultsRound[bots[i]] < core.CONFIG.FirstTo &&
+				resultsRound[bots[i+1]] < core.CONFIG.FirstTo {
 				game := core.Game{IO: &io}
 				winner = game.RunGame(
 					&map[string]bool{bots[i]: true, bots[i+1]: true},
-					conf.FinalScore,
+					core.CONFIG.FinalScore,
 				)
 				resultsRound[winner] += 1
 				core.TuiRenderTournament(

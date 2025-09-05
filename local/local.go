@@ -7,6 +7,14 @@ import (
 	"github.com/zeb33n/farkle2/core"
 )
 
+type LocalOptions struct {
+	Bots bool
+}
+
+var LOCALOPTIONS = LocalOptions{
+	Bots: false,
+}
+
 type ioLocal struct {
 	bots map[string]*core.BotHandler
 }
@@ -69,23 +77,11 @@ func (io *ioLocal) AwaitPlayers(names *map[string]bool) {
 	}
 }
 
-type LocalOptions struct {
-	Bots   bool
-	Config string
-}
-
-var LOCALOPTIONS = LocalOptions{
-	Bots:   false,
-	Config: "config.json",
-}
-
 func LocalRun() {
-	var config core.Config
-	config.LoadConfig(LOCALOPTIONS.Config)
 	ioHandler := ioLocal{bots: map[string]*core.BotHandler{}}
 	splayers := map[string]bool{}
 	if LOCALOPTIONS.Bots {
-		for _, botName := range config.Bots {
+		for _, botName := range core.CONFIG.BotNames {
 			ioHandler.bots[botName] = &core.BotHandler{Name: botName}
 			ioHandler.bots[botName].Start()
 			defer ioHandler.bots[botName].Stop()
@@ -95,6 +91,6 @@ func LocalRun() {
 	core.TuiInit()
 	ioHandler.AwaitPlayers(&splayers)
 	game := core.Game{IO: &ioHandler}
-	game.RunGame(&splayers, config.FinalScore)
+	game.RunGame(&splayers, core.CONFIG.FinalScore)
 	core.TuiClose()
 }

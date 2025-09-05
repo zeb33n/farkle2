@@ -1,8 +1,6 @@
 package core
 
 import (
-	"encoding/json"
-	"log"
 	"os"
 )
 
@@ -12,24 +10,6 @@ const (
 	ROUNDROBIN TourType = iota
 	ELIMINATION
 )
-
-type Config struct {
-	FinalScore int
-	TourType   TourType
-	Bots       []string
-	FirstTo    int
-}
-
-func (c *Config) LoadConfig(file string) {
-	jsonFile, err := os.ReadFile(file)
-	if err != nil {
-		log.Fatal("Cant read config file", err)
-	}
-	err = json.Unmarshal(jsonFile, c)
-	if err != nil {
-		log.Fatal("Cant read config file", err)
-	}
-}
 
 func WaitForKeyPress(verbose bool) string {
 	b := make([]byte, 1)

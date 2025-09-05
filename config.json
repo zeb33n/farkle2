@@ -1,7 +1,6 @@
 {
   "FinalScore": 10000,
-  "TourType": 1,
-  "Bots": [
+  "BotNames": [
     "python_example",
     "python_example_2",
     "py3",
