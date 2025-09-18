@@ -48,7 +48,10 @@ func (b *BotHandler) GetResponse(gs *GameState) MsgTypeC {
 	if err != nil {
 		log.Fatal(err)
 	}
-	switch string(buf[:n]) {
+	if n > 1 {
+		log.Fatal("Buffer overflow")
+	}
+	switch string(buf[0]) {
 	case "b":
 		return BANK
 	case "r":

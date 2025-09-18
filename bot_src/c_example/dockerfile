@@ -1,0 +1,5 @@
+FROM debian
+WORKDIR /app
+COPY . .
+COPY  libcjson.so.1  /lib/x86_64-linux-gnu/libcjson.so.1
+CMD ["./cbot"]
